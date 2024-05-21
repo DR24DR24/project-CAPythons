@@ -144,6 +144,8 @@ class Record:
         self.name = name
         self.phones = []
         self.birthday = None
+        self.address = None
+        self.email = None
 
     def add_phone(self, phone: Phone):
         """Add a phone number to the contact."""
@@ -165,15 +167,21 @@ class Record:
         """Add a birthday to the contact."""
         self.birthday = birthday
 
+    def add_address(self, address: Address):
+        """Add an address to the contact."""
+        self.address = address
+
+    def add_email(self, email: Email):
+        """Add an email to the contact."""
+        self.email = email
+
     def __str__(self):
         """Return the string representation of the contact."""
         phones = "; ".join([str(phone) for phone in self.phones])
-        birthday = (
-            f"{Fore.GREEN}, birthday: {Fore.CYAN}{self.birthday}{Style.RESET_ALL}"
-            if self.birthday
-            else ""
-        )
-        return f"{Fore.GREEN}Contact name: {Fore.CYAN}{self.name}{Fore.GREEN}, phones: {Fore.CYAN}{phones}{birthday}{Style.RESET_ALL}"
+        birthday = f", birthday: {self.birthday}" if self.birthday else ""
+        address = f", address: {self.address}" if self.address else ""
+        email = f", email: {self.email}" if self.email else ""
+        return f"Contact name: {self.name}, phones: {phones}{address}{email}{birthday}"
 
 
 class AddressBook(UserDict):
