@@ -49,6 +49,26 @@ class Name(Field):
         super().__init__(value)
 
 
+class Address(Field):
+    """Class for storing contact address. Inherits from Field.
+
+                Parameters
+                ----------
+                value : str
+                    The name of the address.
+
+                Raises
+                ------
+                ValueError
+                    If the address is empty.
+                """
+
+    def __init__(self, value: str):
+        if not value:
+            raise ValueError("Address cannot be empty.")
+        super().__init__(value)
+
+
 class Phone(Field):
     """Class for storing phone numbers. Inherits from Field.
 
@@ -66,6 +86,26 @@ class Phone(Field):
     def __init__(self, value: str):
         if not value.isdigit() or len(value.strip()) != 10:
             raise ValueError("Phone number must be 10 digits")
+        super().__init__(value)
+
+
+class Email(Field):
+    """Class for storing contact email. Inherits from Field.
+
+                Parameters
+                ----------
+                value : str
+                    The name of the email.
+
+                Raises
+                ------
+                ValueError
+                    If the email is empty.
+                """
+
+    def __init__(self, value: str):
+        if not value:
+            raise ValueError("Email cannot be empty.")
         super().__init__(value)
 
 
