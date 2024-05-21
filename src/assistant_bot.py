@@ -573,6 +573,12 @@ def help_command():
     print(
         f"birthdays{Fore.GREEN} - Shows upcoming birthdays in the next 7 days.{Style.RESET_ALL}"
     )
+    print(
+        f"add-address [name] [address]{Fore.GREEN} - adds an address to a contact.{Style.RESET_ALL}"
+    )
+    print(
+        f"add-email [name] [email]{Fore.GREEN} - adds an email to a contact.{Style.RESET_ALL}"
+    )
     print(f"close, exit, quit{Fore.GREEN} - Exits the program.{Style.RESET_ALL}")
     print(f"help{Fore.GREEN} - Displays a list of available commands.{Style.RESET_ALL}")
     print()
