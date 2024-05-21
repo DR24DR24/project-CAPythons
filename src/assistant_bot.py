@@ -202,8 +202,8 @@ class AddressBook(UserDict):
         """Find a record in the address book by name."""
         return self.data.get(name.value, None)
 
-    def get_upcoming_birthdays(self) -> List[Dict[str, str]]:
-        """Get upcoming birthdays within the next 7 days for contacts."""
+    def get_upcoming_birthdays(self, set_number: int) -> List[Dict[str, str]]:
+        """Get upcoming birthdays within a set amount of days for contacts."""
         today = datetime.today().date()
         upcoming_birthdays = []
 
@@ -216,7 +216,7 @@ class AddressBook(UserDict):
                     birthday_this_year = birthday_this_year.replace(year=today.year + 1)
 
                 day_difference = (birthday_this_year - today).days
-                if 0 <= day_difference <= 7:
+                if 0 <= day_difference <= set_number:
                     congratulation_date = birthday_this_year
                     if (
                         birthday_this_year.weekday() > 4
@@ -479,9 +479,12 @@ def show_birthday(address_book: AddressBook, *args: str) -> None:
 
 
 @input_error
-def birthdays(address_book: AddressBook) -> None:
-    """Show the upcoming birthdays within the next 7 days."""
-    upcoming_birthdays = address_book.get_upcoming_birthdays()
+def birthdays(address_book: AddressBook, *args: int) -> None:
+    """Show the upcoming birthdays within a set amount of days."""
+    if len(args) != 1:
+        raise ValueError("Usage: birthdays [days]")
+    set_number = int(args[0])
+    upcoming_birthdays = address_book.get_upcoming_birthdays(set_number)
     if upcoming_birthdays:
         for entry in upcoming_birthdays:
             print(
@@ -489,12 +492,12 @@ def birthdays(address_book: AddressBook) -> None:
             )
     else:
         print(
-            f"{Fore.YELLOW}No upcoming birthdays in the next 7 days.{Style.RESET_ALL}"
+            f"{Fore.YELLOW}No upcoming birthdays in {set_number} days.{Style.RESET_ALL}"
         )
 
 
 @input_error
-def add_address(args: List[str], address_book: AddressBook):
+def add_address(address_book: AddressBook, *args: str):
     """Add an address to a contact."""
     if len(args) <= 2:
         raise ValueError("Usage: add-address [name] [address separated with spaces]")
@@ -511,7 +514,7 @@ def add_address(args: List[str], address_book: AddressBook):
 
 
 @input_error
-def add_email(args: List[str], address_book: AddressBook):
+def add_email(address_book: AddressBook, *args: str):
     """Add an email to a contact."""
     if len(args) != 2:
         raise ValueError("Usage: add-email [name] [email]")
@@ -571,7 +574,7 @@ def help_command():
         f"show-birthday [name]{Fore.GREEN} - Shows the birthday of a contact.{Style.RESET_ALL}"
     )
     print(
-        f"birthdays{Fore.GREEN} - Shows upcoming birthdays in the next 7 days.{Style.RESET_ALL}"
+        f"birthdays [number of days]{Fore.GREEN} - Shows upcoming birthdays in a set amount of days.{Style.RESET_ALL}"
     )
     print(
         f"add-address [name] [address]{Fore.GREEN} - adds an address to a contact.{Style.RESET_ALL}"
@@ -603,7 +606,7 @@ def main():
         "all": lambda _: show_all_contacts(address_book),
         "add-birthday": lambda args: add_birthday(address_book, *args),
         "show-birthday": lambda args: show_birthday(address_book, *args),
-        "birthdays": lambda _: birthdays(address_book),
+        "birthdays": lambda _: birthdays(address_book, *args),
         "add-address": lambda args: add_address(args, address_book),
         "add-email": lambda args: add_email(args, address_book),
         "close": lambda _: handle_exit(address_book),
