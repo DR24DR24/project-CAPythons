@@ -493,6 +493,39 @@ def birthdays(address_book: AddressBook) -> None:
         )
 
 
+@input_error
+def add_address(args: List[str], address_book: AddressBook):
+    """Add an address to a contact."""
+    if len(args) <= 2:
+        raise ValueError("Usage: add-address [name] [address separated with spaces]")
+    name = args[0]
+    address_str = ", ".join([str(address_part) for address_part in args[1:]])
+    record = address_book.find(Name(name))
+    if record:
+        record.add_address(Address(address_str))
+        print(
+            f"{Fore.GREEN}Address for {Fore.CYAN}{name}{Fore.GREEN} set to {Fore.CYAN}{address_str}{Style.RESET_ALL}"
+        )
+    else:
+        raise KeyError(f"Name '{name}' not found.")
+
+
+@input_error
+def add_email(args: List[str], address_book: AddressBook):
+    """Add an email to a contact."""
+    if len(args) != 2:
+        raise ValueError("Usage: add-email [name] [email]")
+    name, email_str = args
+    record = address_book.find(Name(name))
+    if record:
+        record.add_email(Email(email_str))
+        print(
+            f"{Fore.GREEN}Email for {Fore.CYAN}{name}{Fore.GREEN} set to {Fore.CYAN}{email_str}{Style.RESET_ALL}"
+        )
+    else:
+        raise KeyError(f"Name '{name}' not found.")
+
+
 def handle_exit(address_book: AddressBook) -> None:
     """Exit the program, saving the address book to a file."""
     save_data(address_book)  # Save the address book before exiting
@@ -565,6 +598,8 @@ def main():
         "add-birthday": lambda args: add_birthday(address_book, *args),
         "show-birthday": lambda args: show_birthday(address_book, *args),
         "birthdays": lambda _: birthdays(address_book),
+        "add-address": lambda args: add_address(args, address_book),
+        "add-email": lambda args: add_email(args, address_book),
         "close": lambda _: handle_exit(address_book),
         "exit": lambda _: handle_exit(address_book),
         "quit": lambda _: handle_exit(address_book),
