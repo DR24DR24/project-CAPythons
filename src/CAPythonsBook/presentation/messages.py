@@ -30,8 +30,7 @@ class Message:
                 cls.templates = json.load(file)
         except FileNotFoundError:
             print(
-                f"Language file for '{
-                    language}' not found. Loading default (English) templates."
+                f"Language file for '{language}' not found. Loading default (English) templates."
             )
             with open(
                 os.path.join(

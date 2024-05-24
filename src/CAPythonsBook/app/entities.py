@@ -1,6 +1,7 @@
 import json
 import os
 import uuid
+import re
 from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any
 from collections import UserDict
@@ -32,12 +33,28 @@ class Phone(Field):
         super().__init__(value)
 
 
+class Email(Field):
+    EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
+
+    def __init__(self, value: str):
+        if not self.EMAIL_REGEX.match(value):
+            raise ValueError("Invalid email format")
+        super().__init__(value)
+
+
 class Birthday(Field):
     def __init__(self, value: str):
         try:
             datetime.strptime(value, "%d.%m.%Y")
         except ValueError:
             raise ValueError("Invalid date format. Use DD.MM.YYYY")
+        super().__init__(value)
+
+
+class Address(Field):
+    def __init__(self, value: str):
+        if not value:
+            raise ValueError("Address cannot be empty.")
         super().__init__(value)
 
 
@@ -95,7 +112,7 @@ class AddressBook(UserDict):
                 return record
         return None
 
-    def get_upcoming_birthdays(self) -> List[Dict[str, str]]:
+    def get_upcoming_birthdays(self, set_number: int) -> List[Dict[str, str]]:
         today = datetime.today().date()
         upcoming_birthdays = []
 
@@ -110,7 +127,7 @@ class AddressBook(UserDict):
                         year=today.year + 1)
 
                 day_difference = (birthday_this_year - today).days
-                if 0 <= day_difference <= 7:
+                if 0 <= day_difference <= set_number:
                     congratulation_date = birthday_this_year
                     if birthday_this_year.weekday() > 4:
                         congratulation_date += timedelta(
@@ -178,6 +195,5 @@ class NotesBook:
             for note in self.notes:
                 # print(f"ID: {note['id']}\nTitle: {note['title']}\nText: {
                 #       note['text']}\nTags: {', '.join(note['tags'])}\n{'-'*40}")
-                print(f"\nID: {note['id']}\nTitle: {
-                      note['title']}\nText: {note['text']}\n")
+                print(f"\nID: {note['id']}\nTitle: {note['title']}\nText: {note['text']}\n")
                 print('-'*40)

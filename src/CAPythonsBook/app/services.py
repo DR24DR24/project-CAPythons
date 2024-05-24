@@ -1,8 +1,7 @@
 from app import command_registry
 import re
 from app.interfaces import Command, FieldCommand
-from app.entities import Field, Name, Phone, Birthday, Record, AddressBook
-from app.entities import Field, Name, Phone, Birthday, Record, AddressBook, NotesBook
+from app.entities import Field, Name, Phone, Email, Address, Birthday, Record, AddressBook, NotesBook
 from infrastructure.storage import FileStorage
 from presentation.messages import Message
 from app.command_registry import register_command, get_command
@@ -31,28 +30,23 @@ def input_error(handler: Callable) -> Callable:
             return handler(*args, **kwargs)
         except TypeError as e:
             print(
-                f"{Fore.RED}Error: Incorrect command.\n{
-                    Fore.MAGENTA}{e}{Style.RESET_ALL}"
+                f"{Fore.RED}Error: Incorrect command.\n{Fore.MAGENTA}{e}{Style.RESET_ALL}"
             )
         except ValueError as e:
             print(
-                f"{Fore.RED}Error: Incorrect arguments.\n{
-                    Fore.MAGENTA}{e}{Style.RESET_ALL}"
+                f"{Fore.RED}Error: Incorrect arguments.\n{Fore.MAGENTA}{e}{Style.RESET_ALL}"
             )
         except KeyError as e:
             print(
-                f"{Fore.RED}Error: Contact not found.\n{
-                    Fore.MAGENTA}{e}{Style.RESET_ALL}"
+                f"{Fore.RED}Error: Contact not found.\n{Fore.MAGENTA}{e}{Style.RESET_ALL}"
             )
         except IndexError as e:
             print(
-                f"{Fore.RED}Error: Index out of range.\n{
-                    Fore.MAGENTA}{e}{Style.RESET_ALL}"
+                f"{Fore.RED}Error: Index out of range.\n{Fore.MAGENTA}{e}{Style.RESET_ALL}"
             )
         except Exception as e:
             print(
-                f"{Fore.RED}An unexpected error occurred:\n{
-                    Fore.MAGENTA}{e}{Style.RESET_ALL}"
+                f"{Fore.RED}An unexpected error occurred:\n{Fore.MAGENTA}{e}{Style.RESET_ALL}"
             )
 
     return wrapper
@@ -231,6 +225,48 @@ class AddPhoneCommand(FieldCommand):
             record.add_phone(field)
             Message.info("contact_added", name=record.name.value,
                          phone=field.value)
+
+
+@register_command("add-email")
+class AddEmailCommand(FieldCommand):
+    description = {
+        "en": "Adds a new email to an existing contact.",
+        "uk": "Додає нову електронну пошту до наявного контакту.",
+    }
+
+    def create_field(self, *args: str) -> Field:
+        return Email(args[0])
+
+    def execute_field(self, record: Record, field: Field) -> None:
+        """Adds a new email to an existing contact."""
+        if "email" in record.fields:
+            Message.warning("email_exists", name=record.name.value,
+                            email=field.value)
+        else:
+            record.add_field("email", field)
+            Message.info("email_added", name=record.name.value,
+                         email=field.value)
+
+
+@register_command("add-address")
+class AddEmailCommand(FieldCommand):
+    description = {
+        "en": "Adds a new address to an existing contact.",
+        "uk": "Додає нову адресу до наявного контакту.",
+    }
+
+    def create_field(self, *args: str) -> Field:
+        return Address(args[0])
+
+    def execute_field(self, record: Record, field: Field) -> None:
+        """Adds a new address to an existing contact."""
+        if "address" in record.fields:
+            Message.warning("address_exists", name=record.name.value,
+                            email=field.value)
+        else:
+            record.add_field("address", field)
+            Message.info("address_added", name=record.name.value,
+                         email=field.value)
 
 
 @register_command("add-birthday")
