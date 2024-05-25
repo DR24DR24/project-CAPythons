@@ -57,7 +57,7 @@ class Record:
     def __init__(self, name: Name, **fields: Any):
         self.id = uuid.uuid4()
         self.name = name
-        self.email = None
+        #self.email = None
         self.fields: Dict[str, Field] = {"name": name}
         self.fields.update(fields)
 
@@ -84,14 +84,14 @@ class Record:
         self.fields["phones"].append(phone)
 
 
-    def add_email(self, email: Email):
-        """Add an email address to the contact."""
-        self.email = email
+    # def add_email(self, email: Email):
+    #     """Add an email address to the contact."""
+    #     self.email = email
 
 
-    def edit_email(self, email: Email):
-        """Edit the email address of the contact."""
-        self.email = email
+    # def edit_email(self, email: Email):
+    #     """Edit the email address of the contact."""
+    #     self.email = email
 
 
     def to_dict(self):

@@ -18,14 +18,14 @@ class Command(ABC):
         # self.notes_book = notes_book
 
     @abstractmethod
-    def execute(self, *args: str) -> None:
+    def execute(self, *args: str,**kwargs) -> None:
         pass
 
 
 # Базовий клас для команд, що працюють з полями (Field). Він наслідує від 'Command' і додає специфічні методи для роботи з полями.
 class FieldCommand(Command, ABC):
     @abstractmethod
-    def execute_field(self, record: Record, field: Field) -> None:
+    def execute_field(self, record: Record, field: Field,**kwargs) -> None:
         pass
 
     def execute(self, *args: str) -> None:
@@ -37,12 +37,15 @@ class FieldCommand(Command, ABC):
         if not record:
             Message.error("contact_not_found", name=name)
             return
-
-        field = self.create_field(*field_args)
-        self.execute_field(record, field)
+        command_parameters=self.command_parameters_get()
+        field = self.create_field(*field_args,**command_parameters)
+        self.execute_field(record, field,**command_parameters)
+    
+    def command_parameters_get(self)->Dict[str,str]:
+        return {}    
 
     @abstractmethod
-    def create_field(self, *args: str) -> Field:
+    def create_field(self, *args: str,**kwargs) -> Field:
         pass
 
 
