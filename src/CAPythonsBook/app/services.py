@@ -102,8 +102,8 @@ class AddContactCommand(Command):
         name, phone = args
         record = self.book_type.find_by_name(Name(name))
         if record:
-            print(type(record.fields["phones"]))
-            print(record.fields["phones"])
+            #print(type(record.fields["phones"]))#debug
+            #print(record.fields["phones"])#debug
             if any(p.value == phone for p in record.fields["phones"]):
                 Message.warning("contact_exists", name=name, phone=phone)
             else:
@@ -111,8 +111,7 @@ class AddContactCommand(Command):
                     record.fields["phones"]=[]
                 record.fields["phones"].append(Phone(phone))
                 #current_phone = record.phones[0].value if record.phones else "No phone"
-                #Message.warning("contact_exists", name=name,
-                #                phone=current_phone)
+                Message.info("phone_added", name=name, phone=phone)
         else:
             new_record = Record(Name(name))
             new_record.add_phone(Phone(phone))
@@ -166,13 +165,22 @@ class AddPhoneCommand(FieldCommand):
 
     def execute_field(self, record: Record, field: Field) -> None:
         """Adds a new phone number to an existing contact."""
-        if any(p.value == field.value for p in record.phones):
-            Message.warning("contact_exists",
-                            name=record.name.value, phone=field.value)
+        # if any(p.value == field.value for p in record.phones):
+        #     Message.warning("contact_exists",
+        #                     name=record.name.value, phone=field.value)
+        # else:
+        #     record.add_phone(field)
+        #     Message.info("contact_added", name=record.name.value,
+        #                  phone=field.value)
+        phone=field.value    
+        if any(p.value == phone for p in record.fields["phones"]):
+            Message.warning("contact_exists", name=record.name, phone=phone)
         else:
-            record.add_phone(field)
-            Message.info("contact_added", name=record.name.value,
-                         phone=field.value)
+            if not record.fields.get("phones"):
+                record.fields["phones"]=[]
+            record.fields["phones"].append(field)
+            Message.info("phone_added", name=record.name, phone=phone)
+
 
 
 @register_command("add-birthday")
