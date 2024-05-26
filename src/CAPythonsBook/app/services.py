@@ -187,7 +187,7 @@ class AddEmailCommand(FieldCommand):
 
 
 @register_command("add-address")
-class AddEmailCommand(FieldCommand):
+class AddAddressCommand(FieldCommand):
     description = {
         "en": "Adds a new address to an existing contact.",
         "uk": "Додає нову адресу до наявного контакту.",
