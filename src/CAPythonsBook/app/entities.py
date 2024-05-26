@@ -1,6 +1,7 @@
 import json
 import os
 import uuid
+import re
 from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any
 from collections import UserDict, defaultdict
@@ -26,9 +27,20 @@ class Name(Field):
 
 
 class Phone(Field):
+
     def __init__(self, value: str):
-        if not value.isdigit() or len(value.strip()) != 10:
-            raise ValueError("Phone number must be 10 digits")
+        phone_pattern = re.compile(r"^\+?[1-9]\d{9,14}$")
+        if not phone_pattern.match(value):
+            raise ValueError("Phone number must be 10-15 digits and may start with +")
+        super().__init__(value)
+
+
+class Email(Field):
+    EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
+
+    def __init__(self, value: str):
+        if not self.EMAIL_REGEX.match(value):
+            raise ValueError("Invalid email format")
         super().__init__(value)
 
 
@@ -45,6 +57,7 @@ class Record:
     def __init__(self, name: Name, **fields: Any):
         self.id = uuid.uuid4()
         self.name = name
+        #self.email = None
         self.fields: Dict[str, Field] = {"name": name}
         self.fields.update(fields)
 
@@ -69,6 +82,17 @@ class Record:
         if "phones" not in self.fields:
             self.fields["phones"] = []
         self.fields["phones"].append(phone)
+
+
+    # def add_email(self, email: Email):
+    #     """Add an email address to the contact."""
+    #     self.email = email
+
+
+    # def edit_email(self, email: Email):
+    #     """Edit the email address of the contact."""
+    #     self.email = email
+
 
     def to_dict(self):
         return {k: [f.to_dict() for f in v] if isinstance(v, list) else v.to_dict() for k, v in self.fields.items()}

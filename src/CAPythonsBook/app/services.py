@@ -1,7 +1,7 @@
 from app import command_registry
 import re
 from app.interfaces import Command, FieldCommand
-from app.entities import Field, Name, Phone, Birthday, Record, AddressBook, NotesBook
+from app.entities import Field, Name, Phone, Birthday, Record, AddressBook, NotesBook,Email
 from infrastructure.storage import FileStorage
 from presentation.messages import Message
 from app.command_registry import register_command, get_command
@@ -102,12 +102,16 @@ class AddContactCommand(Command):
         name, phone = args
         record = self.book_type.find_by_name(Name(name))
         if record:
-            if any(p.value == phone for p in record.phones):
+            #print(type(record.fields["phones"]))#debug
+            #print(record.fields["phones"])#debug
+            if any(p.value == phone for p in record.fields["phones"]):
                 Message.warning("contact_exists", name=name, phone=phone)
             else:
-                current_phone = record.phones[0].value if record.phones else "No phone"
-                Message.warning("contact_exists", name=name,
-                                phone=current_phone)
+                if not record.fields.get("phones"):
+                    record.fields["phones"]=[]
+                record.fields["phones"].append(Phone(phone))
+                #current_phone = record.phones[0].value if record.phones else "No phone"
+                Message.info("phone_added", name=name, phone=phone)
         else:
             new_record = Record(Name(name))
             new_record.add_phone(Phone(phone))
@@ -155,19 +159,35 @@ class AddPhoneCommand(FieldCommand):
         "en": "[name] [phone]",
         "uk": "[ім'я] [телефон]"
     }
+    
+    #CommandData={"field_class":Phone,"field_name":"phones","message_type":"phone_added" }
 
-    def create_field(self, *args: str) -> Field:
-        return Phone(args[0])
+    def command_parameters_get(self):
+        return {"field_class":Phone,"field_name":"phones","message_type":"phone_added" }
 
-    def execute_field(self, record: Record, field: Field) -> None:
+    def create_field(self, *args: str, **kwargs) -> Field:
+        return kwargs["field_class"](args[0])
+
+    def execute_field(self, record: Record, field: Field,**kwargs) -> None:
         """Adds a new phone number to an existing contact."""
-        if any(p.value == field.value for p in record.phones):
-            Message.warning("contact_exists",
-                            name=record.name.value, phone=field.value)
+        # if any(p.value == field.value for p in record.phones):
+        #     Message.warning("contact_exists",
+        #                     name=record.name.value, phone=field.value)
+        # else:
+        #     record.add_phone(field)
+        #     Message.info("contact_added", name=record.name.value,
+        #                  phone=field.value)
+        value=field.value
+        if  not record.fields.get(kwargs["field_name"]):
+            record.fields[kwargs["field_name"]]=[] 
+        if any(p.value == value for p in record.fields[kwargs["field_name"]]):
+            Message.warning("contact_exists", name=record.name, phone=value)
         else:
-            record.add_phone(field)
-            Message.info("contact_added", name=record.name.value,
-                         phone=field.value)
+            if not record.fields.get(kwargs["field_name"]):
+                record.fields[kwargs["field_name"]]=[]
+            record.fields[kwargs["field_name"]].append(field)
+            Message.info(kwargs["message_type"], name=record.name, value=value)
+
 
 
 @register_command("add-birthday")
@@ -189,6 +209,55 @@ class AddBirthdayCommand(FieldCommand):
         record.add_field("Birthday", field)
         Message.info("birthday_set", name=record.name.value,
                      birthday=field.value)
+
+
+@register_command("add-email")
+class AddEmailToContactCommand(AddPhoneCommand):
+    description = {
+        "en": "Adds an email to a contact.",
+        "uk": "Додає електронну пошту до контакту.",
+    }
+
+    def command_parameters_get(self):
+        return {"field_class":Email,"field_name":"emails","message_type":"Email_added" }
+
+    # def execute(self, *args: str) -> None:
+    #     """Додає електронну пошту до контакту."""
+    #     if len(args) != 2:
+    #         Message.error("incorrect_arguments")
+    #         return
+
+    #     name, email = args
+    #     record = self.book_type.find_by_name(Name(name))
+
+    #     if record:
+    #         record.add_email(Email(email))
+    #         Message.info("email_added", name=name, email=email)
+    #     else:
+    #         Message.error("contact_not_found", name=name)
+
+
+@register_command("edit-email")
+class EditEmailOfContactCommand(Command):
+    description = {
+        "en": "Edits the email of a contact.",
+        "uk": "Редагує електронну пошту контакту.",
+    }
+
+    def execute(self, *args: str) -> None:
+        """Редагує електронну пошту контакту."""
+        if len(args) != 2:
+            Message.error("incorrect_arguments")
+            return
+
+        name, email = args
+        record = self.book_type.find_by_name(Name(name))
+
+        if record:
+            record.edit_email(Email(email))
+            Message.info("email_changed", name=name, email=email)
+        else:
+            Message.error("contact_not_found", name=name)
 
 
 @register_command("all")

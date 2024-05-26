@@ -15,10 +15,12 @@
   "no_birthday": "No birthday set for \"{name}\".",
   "no_upcoming_birthdays": "No upcoming birthdays in the next 7 days.",
   "phone_info": "Phone number of \"{name}\": {phone}",
+  "phone_added": "For \"{name}\" added phone {value}",
   "phone_not_found": "No phone numbers found for contact \"{name}\".",
   "set_language": "Language set to {language}.",
   "upcoming_birthdays": "{name}: {congratulation_date}",
   "note_added": "Note added successfully with title: {title}",
   "note_updated": "Note content updated successfully with title: {title}",
-  "note_deleted": "Note deleted successfully with title: {title}"
+  "note_deleted": "Note deleted successfully with title: {title}",
+  "Email_added": "For \"{name}\" added E-mail {value} "
 }
