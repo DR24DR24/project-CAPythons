@@ -1,13 +1,49 @@
+<class 'list'>
+<class 'list'>
+<class 'str'>
+<class 'list'>
+<class 'list'>
+<class 'list'>
+<class 'list'>
 
      _               _       _                 _     ____          _                ____  
     / \    ___  ___ (_) ___ | |_  __ _  _ __  | |_  | __ )   ___  | |_    __   __  |___ \ 
    / _ \  / __|/ __|| |/ __|| __|/ _` || '_ \ | __| |  _ \  / _ \ | __|   \ \ / /    __) |
-  / ___ \ \__ \\__ \| |\__ \| |_| (_| || | | || |_  | |_) || (_) || |_     \ V /_   / __/ 
+  / ___ \ \_  \\ _ \| |\__ \| |_| (_| || | | || |_  | |_) || (_) || |_     \ V /_   / __/ 
  /_/   \_\|___/|___/|_||___/ \__|\__,_||_| |_| \__| |____/  \___/  \__|     \_/(_) |_____|
                                                                                          
 
 
 Welcome to the Assistant Bot ver. 2.3 !
 
-Enter a command: How can I help you?
-Enter a command: Good bye!
+
+Command       	Parameters                    	Description
+hello         	                              	Displays a greeting message.
+add           	[name] [phone]                	Adds a new contact to the address book.
+change        	[name] [old phone] [new phone]	Changes the phone number of an existing contact.
+add-phone     	[name] [phone]                	Adds a new phone number to an existing contact.
+add-birthday  	[name] [birthday]             	Adds a birthday to an existing contact.
+add-email     	[name] [phone]                	Adds an email to a contact.
+edit-email    	                              	Edits the email of a contact.
+all           	                              	Shows all contacts in the address book.
+search-contact	[search string]               	Searches for contacts matching the given criteria.
+show-phone    	[name]                        	Shows the phone number of a contact.
+find-tag-note 	[title]                       	Finds a note by its title.
+add-note      	[title] [text] [tags]         	Adds a new note.
+edit-note     	[title] [text] [tags]         	Edits an existing note.
+delete-note   	[title]                       	Deletes an existing note.
+search-notes  	[search string]               	Searches for notes matching the given criteria.
+display-notes 	                              	Displays all notes.
+close         	                              	Saves the address book and exits the program.
+exit          	                              	Saves the address book and exits the program.
+help          	                              	Displays this help message.
+set-language  	['en' or 'uk']                	Sets the application language.
+
+[?1l[?25l[0m[?7l[0m[J[0;33mEnter a command: [0m
+
+
+
+
+
+
+[0m [7A[18C[?7h[0m[?12l[?25h
