@@ -25,7 +25,7 @@ class FileStorage:
                 record = Record(name)
                 record.id = uuid.UUID(record_id)
                 for field_name, field_value in fields.items():
-                    print(type(field_value))
+                    #print(type(field_value))
                     field_class = globals().get(field_name.capitalize(), Field)
                     if type(field_value)==list:
                         list_of_object=[field_class(items) for items in field_value]
