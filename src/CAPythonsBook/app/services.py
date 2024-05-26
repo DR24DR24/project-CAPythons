@@ -275,6 +275,7 @@ class ShowAllContactsCommand(Command):
         else:
             raise IndexError("No contacts available.")
 
+
 @register_command("search-contact")
 class SearchContactsCommand(Command):
     description = {
@@ -292,12 +293,14 @@ class SearchContactsCommand(Command):
             Message.error("incorrect_arguments")
             return
         keyword = " ".join(args)
-        results = [record for record in self.book_type.values() if record.matches_criteria(keyword)]
+        results = [record for record in self.book_type.values()
+                   if record.matches_criteria(keyword)]
         if results:
             for record in results:
                 print(record)
         else:
             Message.info("no_results_found")
+
 
 @register_command("show-phone")
 class ShowPhoneCommand(Command):
@@ -323,6 +326,31 @@ class ShowPhoneCommand(Command):
         else:
             Message.error("contact_not_found", name=name)
 
+
+@register_command("find-tag-note")
+class FindNoteCommand(Command):
+    description = {
+        "en": "Finds a note by its title.",
+        "uk": "Знаходить нотатку за заголовком.",
+    }
+    example = {
+        "en": "[title]",
+        "uk": "[заголовок]"
+    }
+
+    def execute(self, *args: tuple) -> None:
+        """Знаходить нотатку за заголовком.
+
+        Command: find-tag-note [tag_name]
+        """
+        if len(args) != 1:
+            Message.error("incorrect_arguments")
+            return
+
+        tag = args[0]
+        self.book_type.find_notes_with_same_tags(tag)
+
+
 @register_command("add-note")
 class AddNoteCommand(Command):
     description = {
@@ -335,7 +363,10 @@ class AddNoteCommand(Command):
     }
 
     def execute(self, *args: tuple) -> None:
-        """Додає нову нотатку."""
+        """Додає нову нотатку.
+
+        Command: add-note [title] [text] [#tags]
+        """
         def remove_hash_words(s: str) -> str:
             return re.sub(r'\s*#[\w-]+', '', s).strip()
 
@@ -346,6 +377,7 @@ class AddNoteCommand(Command):
         title = args[0]
         text = remove_hash_words(' '.join(args[1:]))
         tags = extract_hash_words(' '.join(args[1:]))
+
         if len(args) < 2:
             Message.error("incorrect_arguments")
             return
@@ -365,7 +397,10 @@ class EditNoteCommand(Command):
     }
 
     def execute(self, *args: tuple) -> None:
-        """Редагує наявну нотатку."""
+        """Редагує наявну нотатку.
+
+        Command: edit-note [id] [title] [text]
+        """
         id_note = args[0]
         title = args[1]
         text = ' '.join(args[2:])
@@ -389,13 +424,17 @@ class DeleteNoteCommand(Command):
     }
 
     def execute(self, *args: tuple) -> None:
-        """Видаляє наявну нотатку."""
+        """Видаляє наявну нотатку.
+
+        Command: delete-note [id]
+        """
         if len(args) != 1:
             Message.error("incorrect_arguments")
             return
-        title = args[0]
-        self.book_type.delete_note(title)
-        Message.info("note_deleted", title=title)
+        note_id = args[0]
+        self.book_type.delete_note(note_id)
+        Message.info("note_deleted", title=note_id)
+
 
 @register_command("search-notes")
 class SearchNotesCommand(Command):
@@ -409,7 +448,10 @@ class SearchNotesCommand(Command):
     }
 
     def execute(self, *args: str) -> None:
-        """Searches for notes matching the given criteria."""
+        """Searches for notes matching the given criteria.
+
+        Command: search-notes [title or text or tag]
+        """
         if len(args) < 1:
             Message.error("incorrect_arguments")
             return
@@ -417,10 +459,12 @@ class SearchNotesCommand(Command):
         results = self.book_type.search_notes(keyword)
         if results:
             for note in results:
-                print(f"\nID: {note['id']}\nTitle: {note['title']}\nText: {note['text']}\nTags: {', '.join(note['tags'])}\n")
+                print(f"\nID: {note['id']}\nTitle: {note['title']}\nText: {
+                      note['text']}\nTags: {', '.join(note['tags'])}\n")
                 print('-'*40)
         else:
             Message.info("no_results_found")
+
 
 @register_command("display-notes")
 class DisplayNotesCommand(Command):
@@ -430,10 +474,11 @@ class DisplayNotesCommand(Command):
     }
 
     def execute(self, *args: str) -> None:
-        """Виводить всі нотатки."""
+        """Виводить всі нотатки
+
+        Command: display-notes
+        ."""
         self.book_type.display_notes()
-
-
 
 @register_command("exit")
 @register_command("close")
@@ -448,8 +493,7 @@ class ExitCommand(Command):
         storage = FileStorage("addressbook.json")
         storage.save_contacts(self.book_type.data)
         Message.info("exit_message")
-        sys.exit()
-
+        Command.exit_command_flag = True  # sys.exit()
 
 @register_command("help")
 class HelpCommand(Command):
@@ -465,27 +509,34 @@ class HelpCommand(Command):
             "uk": ("Команда", "Параметри", "Опис")
         }
         language = settings.language
-        max_command_len = max(len(command_name) for command_name in command_registry.command_registry.keys())
+        max_command_len = max(
+            len(command_name) for command_name in command_registry.command_registry.keys())
         max_example_len = max(
-            len(command_class.example.get(language, "")) if hasattr(command_class, 'example') else 0
+            len(command_class.example.get(language, "")) if hasattr(
+                command_class, 'example') else 0
             for command_class in command_registry.command_registry.values()
         )
 
         command_header, example_header, description_header = headers[language]
-        print(f"\n{Style.BRIGHT}{Fore.CYAN}{command_header.ljust(max_command_len)}\t{example_header.ljust(max_example_len)}\t{description_header}{Style.RESET_ALL}")
-
+        print(f"\n{Style.BRIGHT}{Fore.CYAN}{command_header.ljust(max_command_len)}\t{
+              example_header.ljust(max_example_len)}\t{description_header}{Style.RESET_ALL}")
 
         for command_name, command_class in command_registry.command_registry.items():
-            description = command_class.description.get(language, "No description available.")
-            example = command_class.example.get(language, "") if hasattr(command_class, 'example') else ""
-            
-            command_str = f"{Style.BRIGHT}{Fore.WHITE}{command_name.ljust(max_command_len)}{Style.RESET_ALL}"
-            example_str = f"{Fore.WHITE}{example.ljust(max_example_len)}{Style.RESET_ALL}"
+            description = command_class.description.get(
+                language, "No description available.")
+            example = command_class.example.get(language, "") if hasattr(
+                command_class, 'example') else ""
+
+            command_str = f"{Style.BRIGHT}{Fore.WHITE}{command_name.ljust(max_command_len)}{
+                Style.RESET_ALL}"
+            example_str = f"{Fore.WHITE}{example.ljust(max_example_len)}{
+                Style.RESET_ALL}"
             description_str = f"{Fore.GREEN}{description}{Style.RESET_ALL}"
-            
+
             print(f"{command_str}\t{example_str}\t{description_str}")
-        
+
         print()
+
 
 @register_command("set-language")
 class SetLanguageCommand(Command):

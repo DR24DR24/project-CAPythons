@@ -4,7 +4,7 @@ import uuid
 import re
 from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any
-from collections import UserDict
+from collections import UserDict, defaultdict
 from colorama import Fore, Style
 
 
@@ -206,17 +206,27 @@ class NotesBook:
         for note in self.notes:
             if (keyword.lower() in note['title'].lower() or
                 keyword.lower() in note['text'].lower() or
-                any(keyword.lower() in tag.lower() for tag in note['tags'])):
+                    any(keyword.lower() in tag.lower() for tag in note['tags'])):
                 results.append(note)
         return results
+
+    def find_notes_with_same_tags(self, tag: str) -> None:
+        search_tag = f"#{tag}"
+        tagged_notes = [
+            note for note in self.notes if search_tag in note['tags']]
+
+        if tagged_notes:
+            print(f"Notes with tag '{tag}':")
+            for note in tagged_notes:
+                print(f"  ID: {note['id']}\n  Title: {note['title']}\n  Text: {
+                      note['text']}\n  Tags: {', '.join(note['tags'])}\n  {'-'*40}")
+        else:
+            raise ValueError(f"No notes found with tag '{tag}'.")
 
     def display_notes(self) -> None:
         if not self.notes:
             raise ValueError("No notes available.")
         else:
             for note in self.notes:
-                # print(f"ID: {note['id']}\nTitle: {note['title']}\nText: {
-                #       note['text']}\nTags: {', '.join(note['tags'])}\n{'-'*40}")
-                print(f"\nID: {note['id']}\nTitle: {
-                      note['title']}\nText: {note['text']}\n")
-                print('-'*40)
+                print(f"ID: {note['id']}\nTitle: {note['title']}\nText: {
+                      note['text']}\nTags: {', '.join(note['tags'])}\n{'-'*40}")

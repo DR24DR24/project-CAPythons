@@ -12,10 +12,8 @@ class Command(ABC):
     def __init__(
         self,
         book_type: AddressBook | NotesBook,
-        #  notes_book: NotesBook
     ):
         self.book_type = book_type
-        # self.notes_book = notes_book
 
     @abstractmethod
     def execute(self, *args: str,**kwargs) -> None:
