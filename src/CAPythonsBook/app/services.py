@@ -229,6 +229,33 @@ class AddBirthdayCommand(FieldCommand):
         Message.info("birthday_set", name=record.name.value,
                      birthday=field.value)
 
+@register_command("delete")
+class DeleteCommand(Command):
+    description = {
+        "en": "Delete contact.",
+        "uk": "Видаляє контакт.",
+    }
+    example = {
+        "en": "[Name]",
+        "uk": "[Ім'я]"
+    }
+    def execute(self, *args: str) -> None:
+        if len(args) !=1:
+            Message.error("incorrect_arguments")
+            return
+        name, *_  = args
+        key = None
+        for k, v in self.book_type.data.items():
+            if v.name.value == name:
+                key = k
+                break
+        #record = self.book_type.find_by_name(Name(name))
+        if not key:
+            Message.error("contact_not_found", name=name)
+            return
+        Message.info("contact delete", name=name)
+        del self.book_type.data[key]
+
 
 @register_command("birthdays")
 class ShowUpcomingBirthdays(Command):
@@ -337,6 +364,8 @@ class AddAddressToContactCommand(FieldCommand):
         record.add_field("Address", field)
         Message.info("address_added", name=record.name.value,
                      address=field.value)
+        
+
 
 
 @register_command("edit-address")
@@ -361,7 +390,6 @@ class EditAddressOfContactCommand(Command):
             Message.info("address_changed", name=name, address=", ".join(address))
         else:
             Message.error("contact_not_found", name=name)
-
 
 
 @register_command("all")

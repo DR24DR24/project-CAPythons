@@ -26,5 +26,6 @@
   "note_deleted": "Note deleted successfully with title: {title}",
   "Email_added": "For \"{name}\" added E-mail {value} ",
   "address_added": "Address for {name} set to {address}",
-  "address_changed": "For {name} changed email to {address}"
+  "address_changed": "For {name} changed email to {address}",
+  "contact delete": "Delete contact {name}"
 }
