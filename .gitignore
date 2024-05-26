@@ -168,6 +168,6 @@ cython_debug/
 _tests/
 
 # Artefacts of project-CAPythons
-# addressbook.pkl
-# addressbook.json
-# settings.json
+addressbook.pkl
+addressbook.json
+settings.json

@@ -76,6 +76,12 @@ class Record:
         if field_name in self.fields:
             self.fields[field_name] = new_field
 
+    def matches_criteria(self, keyword: str) -> bool:
+        for field in self.fields.values():
+            if keyword.lower() in str(field).lower():
+                return True
+        return False
+
     def add_phone(self, phone: Phone):
         if "phones" not in self.fields:
             self.fields["phones"] = []
@@ -187,6 +193,15 @@ class NotesBook:
     def delete_note(self, note_id: str) -> None:
         self.notes = [note for note in self.notes if note['id'] != note_id]
         self.save_notes()
+
+    def search_notes(self, keyword: str) -> List[Dict[str, str]]:
+        results = []
+        for note in self.notes:
+            if (keyword.lower() in note['title'].lower() or
+                keyword.lower() in note['text'].lower() or
+                any(keyword.lower() in tag.lower() for tag in note['tags'])):
+                results.append(note)
+        return results
 
     def display_notes(self) -> None:
         if not self.notes:

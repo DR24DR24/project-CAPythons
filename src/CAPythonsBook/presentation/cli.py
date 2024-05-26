@@ -52,6 +52,8 @@ def main():
     )
     print()
 
+    handle_command("help", address_book, notes_book)
+
     while not Command.exit_command_flag:
         enter_command_prompt = Message.format_message("enter_command")
         user_input = input(

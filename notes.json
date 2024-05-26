@@ -2,6 +2,13 @@
     {
         "id": "4419981e-3266-4538-b1af-ca91e79c93ef",
         "title": "test-1",
-        "text": "test1test1test1"
+        "text": "test1test1test1",
+        "tags": []
+    },
+    {
+        "id": "4711a99a-5974-48a6-993a-fd0038380598",
+        "title": "test-2",
+        "text": "test2test2test2",
+        "tags": []
     }
 ]

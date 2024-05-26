@@ -11,6 +11,7 @@ from typing import Callable
 from colorama import Fore, Style
 import sys
 
+
 # Initialize settings
 settings = Settings()
 
@@ -69,7 +70,7 @@ def handle_command(command: str, address_book: AddressBook, notes_book: NotesBoo
 class HelloCommand(Command):
     description = {
         "en": "Displays a greeting message.",
-        "uk": "Виводить привітальне повідомлення.",
+        "uk": "Виводить вітання.",
     }
 
     def execute(self, *args: str) -> None:
@@ -77,86 +78,15 @@ class HelloCommand(Command):
         Message.info("greeting")
 
 
-@register_command("add-note")
-class AddNoteCommand(Command):
-    description = {
-        "en": "Adds a new note.",
-        "uk": "Додає нову нотатку.",
-    }
-
-    def execute(self, *args: tuple) -> None:
-        """Додає нову нотатку."""
-        def remove_hash_words(s: str) -> str:
-            return re.sub(r'\s*#[\w-]+', '', s).strip()
-
-        def extract_hash_words(s: str) -> list:
-            hash_words = re.findall(r'#[\w-]+', s)
-            return hash_words
-
-        title = args[0]
-        text = remove_hash_words(' '.join(args[1:]))
-        tags = extract_hash_words(' '.join(args[1:]))
-        if len(args) < 2:
-            Message.error("incorrect_arguments")
-            return
-        self.book_type.add_note(title, text, tags)
-        Message.info("note_added", title=title)
-
-
-@register_command("edit-note")
-class EditNoteCommand(Command):
-    description = {
-        "en": "Edits an existing note.",
-        "uk": "Редагує наявну нотатку.",
-    }
-
-    def execute(self, *args: tuple) -> None:
-        """Редагує наявну нотатку."""
-        id_note = args[0]
-        title = args[1]
-        text = ' '.join(args[2:])
-        if len(args) < 2:
-            Message.error("incorrect_arguments")
-            return
-
-        self.book_type.edit_note(id_note, title, text)
-        Message.info("note_updated", title=title, text=text)
-
-
-@register_command("delete-note")
-class DeleteNoteCommand(Command):
-    description = {
-        "en": "Deletes an existing note.",
-        "uk": "Видаляє наявну нотатку.",
-    }
-
-    def execute(self, *args: tuple) -> None:
-        """Видаляє наявну нотатку."""
-        if len(args) != 1:
-            Message.error("incorrect_arguments")
-            return
-        title = args[0]
-        self.book_type.delete_note(title)
-        Message.info("note_deleted", title=title)
-
-
-@register_command("display-notes")
-class DisplayNotesCommand(Command):
-    description = {
-        "en":  "Displays all notes.",
-        "uk": "Виводить всі нотатки."
-    }
-
-    def execute(self, *args: str) -> None:
-        """Виводить всі нотатки."""
-        self.book_type.display_notes()
-
-
 @register_command("add")
 class AddContactCommand(Command):
     description = {
         "en": "Adds a new contact to the address book.",
         "uk": "Додає новий контакт у адресну книгу.",
+    }
+    example = {
+        "en": "[name] [phone]",
+        "uk": "[ім'я] [телефон]"
     }
 
     def execute(self, *args: str) -> None:
@@ -186,6 +116,10 @@ class ChangeContactCommand(Command):
         "en": "Changes the phone number of an existing contact.",
         "uk": "Змінює номер телефону існуючого контакту."
     }
+    example = {
+        "en": "[name] [phone]",
+        "uk": "[ім'я] [телефон]"
+    }
 
     def execute(self, *args: str) -> None:
         """Changes the phone number of an existing contact."""
@@ -211,6 +145,10 @@ class AddPhoneCommand(FieldCommand):
     description = {
         "en": "Adds a new phone number to an existing contact.",
         "uk": "Додає новий номер телефону до наявного контакту.",
+    }
+    example = {
+        "en": "[name] [phone]",
+        "uk": "[ім'я] [телефон]"
     }
 
     def create_field(self, *args: str) -> Field:
@@ -275,13 +213,17 @@ class AddBirthdayCommand(FieldCommand):
         "en": "Adds a birthday to an existing contact.",
         "uk": "Додає день народження до наявного контакту.",
     }
+    example = {
+        "en": "[name] [birthday]",
+        "uk": "[ім'я] [дата народження]"
+    }
 
     def create_field(self, *args: str) -> Field:
         return Birthday(args[0])
 
     def execute_field(self, record: Record, field: Field) -> None:
         """Adds a birthday to an existing contact."""
-        record.add_birthday(field)
+        record.add_field("Birthday", field)
         Message.info("birthday_set", name=record.name.value,
                      birthday=field.value)
 
@@ -290,7 +232,7 @@ class AddBirthdayCommand(FieldCommand):
 class ShowAllContactsCommand(Command):
     description = {
         "en": "Shows all contacts in the address book.",
-        "uk": "Показує всі контакти.",
+        "uk": "Виводить всі контакти.",
     }
 
     def execute(self, *args: str) -> None:
@@ -301,12 +243,39 @@ class ShowAllContactsCommand(Command):
         else:
             raise IndexError("No contacts available.")
 
+@register_command("search-contact")
+class SearchContactsCommand(Command):
+    description = {
+        "en": "Searches for contacts matching the given criteria.",
+        "uk": "Шукає контакти за заданими критеріями."
+    }
+    example = {
+        "en": "[search string]",
+        "uk": "[пошуковий запит]"
+    }
+
+    def execute(self, *args: str) -> None:
+        """Searches for contacts matching the given criteria."""
+        if len(args) < 1:
+            Message.error("incorrect_arguments")
+            return
+        keyword = " ".join(args)
+        results = [record for record in self.book_type.values() if record.matches_criteria(keyword)]
+        if results:
+            for record in results:
+                print(record)
+        else:
+            Message.info("no_results_found")
 
 @register_command("show-phone")
 class ShowPhoneCommand(Command):
     description = {
         "en": "Shows the phone number of a contact.",
         "uk": "Показує номер телефону контакту.",
+    }
+    example = {
+        "en": "[name]",
+        "uk": "[ім'я]"
     }
 
     def execute(self, *args: str) -> None:
@@ -321,6 +290,117 @@ class ShowPhoneCommand(Command):
             Message.info("phone_info", name=name, phone=phones)
         else:
             Message.error("contact_not_found", name=name)
+
+@register_command("add-note")
+class AddNoteCommand(Command):
+    description = {
+        "en": "Adds a new note.",
+        "uk": "Додає нову нотатку.",
+    }
+    example = {
+        "en": "[title] [text] [tags]",
+        "uk": "[заголовок] [текст] [теги]"
+    }
+
+    def execute(self, *args: tuple) -> None:
+        """Додає нову нотатку."""
+        def remove_hash_words(s: str) -> str:
+            return re.sub(r'\s*#[\w-]+', '', s).strip()
+
+        def extract_hash_words(s: str) -> list:
+            hash_words = re.findall(r'#[\w-]+', s)
+            return hash_words
+
+        title = args[0]
+        text = remove_hash_words(' '.join(args[1:]))
+        tags = extract_hash_words(' '.join(args[1:]))
+        if len(args) < 2:
+            Message.error("incorrect_arguments")
+            return
+        self.book_type.add_note(title, text, tags)
+        Message.info("note_added", title=title)
+
+
+@register_command("edit-note")
+class EditNoteCommand(Command):
+    description = {
+        "en": "Edits an existing note.",
+        "uk": "Редагує наявну нотатку.",
+    }
+    example = {
+        "en": "[title] [text] [tags]",
+        "uk": "[заголовок] [текст] [теги]"
+    }
+
+    def execute(self, *args: tuple) -> None:
+        """Редагує наявну нотатку."""
+        id_note = args[0]
+        title = args[1]
+        text = ' '.join(args[2:])
+        if len(args) < 2:
+            Message.error("incorrect_arguments")
+            return
+
+        self.book_type.edit_note(id_note, title, text)
+        Message.info("note_updated", title=title, text=text)
+
+
+@register_command("delete-note")
+class DeleteNoteCommand(Command):
+    description = {
+        "en": "Deletes an existing note.",
+        "uk": "Видаляє наявну нотатку.",
+    }
+    example = {
+        "en": "[title]",
+        "uk": "[заголовок]"
+    }
+
+    def execute(self, *args: tuple) -> None:
+        """Видаляє наявну нотатку."""
+        if len(args) != 1:
+            Message.error("incorrect_arguments")
+            return
+        title = args[0]
+        self.book_type.delete_note(title)
+        Message.info("note_deleted", title=title)
+
+@register_command("search-notes")
+class SearchNotesCommand(Command):
+    description = {
+        "en": "Searches for notes matching the given criteria.",
+        "uk": "Шукає нотатки за заданими критеріями."
+    }
+    example = {
+        "en": "[search string]",
+        "uk": "[пошуковий запит]"
+    }
+
+    def execute(self, *args: str) -> None:
+        """Searches for notes matching the given criteria."""
+        if len(args) < 1:
+            Message.error("incorrect_arguments")
+            return
+        keyword = " ".join(args)
+        results = self.book_type.search_notes(keyword)
+        if results:
+            for note in results:
+                print(f"\nID: {note['id']}\nTitle: {note['title']}\nText: {note['text']}\nTags: {', '.join(note['tags'])}\n")
+                print('-'*40)
+        else:
+            Message.info("no_results_found")
+
+@register_command("display-notes")
+class DisplayNotesCommand(Command):
+    description = {
+        "en":  "Displays all notes.",
+        "uk": "Виводить всі нотатки."
+    }
+
+    def execute(self, *args: str) -> None:
+        """Виводить всі нотатки."""
+        self.book_type.display_notes()
+
 
 
 @register_command("exit")
@@ -343,23 +423,48 @@ class ExitCommand(Command):
 class HelpCommand(Command):
     description = {
         "en": "Displays this help message.",
-        "uk": "Виводить це повідомлення про допомогу."
+        "uk": "Виводить це повідомлення про доступні команди."
     }
 
     def execute(self, *args: str) -> None:
         """Displays this help message."""
+        headers = {
+            "en": ("Command", "Parameters", "Description"),
+            "uk": ("Команда", "Параметри", "Опис")
+        }
         language = settings.language
-        for command_name, command_class in command_registry.command_registry.items():
-            description = command_class.description.get(
-                language, "No description available.")
-            print(f"{command_name}: {description}")
+        max_command_len = max(len(command_name) for command_name in command_registry.command_registry.keys())
+        max_example_len = max(
+            len(command_class.example.get(language, "")) if hasattr(command_class, 'example') else 0
+            for command_class in command_registry.command_registry.values()
+        )
 
+        command_header, example_header, description_header = headers[language]
+        print(f"\n{Style.BRIGHT}{Fore.CYAN}{command_header.ljust(max_command_len)}\t{example_header.ljust(max_example_len)}\t{description_header}{Style.RESET_ALL}")
+
+
+        for command_name, command_class in command_registry.command_registry.items():
+            description = command_class.description.get(language, "No description available.")
+            example = command_class.example.get(language, "") if hasattr(command_class, 'example') else ""
+            
+            command_str = f"{Style.BRIGHT}{Fore.WHITE}{command_name.ljust(max_command_len)}{Style.RESET_ALL}"
+            example_str = f"{Fore.WHITE}{example.ljust(max_example_len)}{Style.RESET_ALL}"
+            description_str = f"{Fore.GREEN}{description}{Style.RESET_ALL}"
+            
+            print(f"{command_str}\t{example_str}\t{description_str}")
+        
+        print()
 
 @register_command("set-language")
 class SetLanguageCommand(Command):
     description = {
         "en": "Sets the application language.",
         "uk": "Встановлює мову застосунку."
+    }
+
+    example = {
+        "en": "['en' or 'uk']",
+        "uk": "['en' або 'uk']"
     }
 
     def execute(self, *args: str) -> None:
