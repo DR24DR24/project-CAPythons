@@ -80,8 +80,7 @@ def main():
     print(f"{Fore.GREEN}{banner_part_1}{Style.RESET_ALL}")
     print()
     print(
-        f"{Fore.CYAN}{Style.BRIGHT}Welcome to the Assistant Bot ver. 2.3 !{
-            Style.RESET_ALL}"
+        f"{Fore.CYAN}{Style.BRIGHT}Welcome to the Assistant Bot ver. 2.3 !{Style.RESET_ALL}"
     )
     print()
 

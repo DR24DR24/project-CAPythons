@@ -10,7 +10,9 @@
         "phones": [
             "1234123412"
         ],
-        "Birthday": "27.05.2222"
+        "Birthday": "27.05.2222",
+        "Email": "Germany, goettingen, suedring, 32",
+        "Address": "Ukraine, Kyiv, 471"
     },
     "a1e19f30-e1b8-4197-83aa-02086bfdbbf4": {
         "name": "a",
@@ -24,17 +26,16 @@
             "40000000000",
             "30000000000",
             "50000000000"
-        ],
-        "emails": [
-            "a@a.a",
-            "a@a.b"
         ]
     },
     "c54f6f68-7a5d-437c-bf17-4f38488405d2": {
         "name": "b",
         "phones": [
             "1111111111"
-        ]
+        ],
+        "Birthday": "01.06.2000",
+        "Email": "biggest@gmail.com",
+        "Address": "Ukraine, Kyiv, 471"
     },
     "44831ff4-4d94-41a8-a032-ff6c1aa32200": {
         "name": "c",
@@ -48,5 +49,14 @@
             "3000000000",
             "4000000000"
         ]
+    },
+    "b0ae0dca-2e6e-486d-b009-21874fbf64a7": {
+        "name": "Michael",
+        "phones": [
+            "1231231231"
+        ],
+        "Email": "no_more_michael@gmail.com",
+        "Address": "Ukraine, Kyiv, Donca, 2B, 471",
+        "Birthday": "01.06.2000"
     }
 }
