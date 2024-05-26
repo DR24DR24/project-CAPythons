@@ -48,6 +48,14 @@ class Email(Field):
         super().__init__(value)
 
 
+class Address(Field):
+    def __init__(self, value: list):
+        if not value:
+            raise ValueError("Invalid address format")
+        string = ", ".join(value)
+        super().__init__(string)
+
+
 class Birthday(Field):
     def __init__(self, value: str):
         try:
@@ -87,17 +95,6 @@ class Record:
             self.fields["phones"] = []
         self.fields["phones"].append(phone)
 
-
-    # def add_email(self, email: Email):
-    #     """Add an email address to the contact."""
-    #     self.email = email
-
-
-    # def edit_email(self, email: Email):
-    #     """Edit the email address of the contact."""
-    #     self.email = email
-
-
     def to_dict(self):
         return {k: [f.to_dict() for f in v] if isinstance(v, list) else v.to_dict() for k, v in self.fields.items()}
 
@@ -129,28 +126,22 @@ class AddressBook(UserDict):
                 return record
         return None
 
-    def get_upcoming_birthdays(self) -> List[Dict[str, str]]:
+    def get_upcoming_birthdays(self, set_number: int) -> List[Dict[str, str]]:
         today = datetime.today().date()
         upcoming_birthdays = []
 
         for record in self.data.values():
-            if "birthday" in record.fields:
+            if "Birthday" in record.fields:
                 birthday = datetime.strptime(
-                    record.fields["birthday"].value, "%d.%m.%Y").date()
+                    record.fields["Birthday"].value, "%d.%m.%Y").date()
                 birthday_this_year = birthday.replace(year=today.year)
-
                 if birthday_this_year < today:
                     birthday_this_year = birthday_this_year.replace(
                         year=today.year + 1)
 
                 day_difference = (birthday_this_year - today).days
-                if 0 <= day_difference <= 7:
+                if 0 <= day_difference <= set_number:
                     congratulation_date = birthday_this_year
-                    if birthday_this_year.weekday() > 4:
-                        congratulation_date += timedelta(
-                            days=7 - birthday_this_year.weekday()
-                        )
-
                     upcoming_birthdays.append(
                         {
                             "name": record.fields["name"].value,
@@ -222,8 +213,7 @@ class NotesBook:
         if tagged_notes:
             print(f"Notes with tag '{tag}':")
             for note in tagged_notes:
-                print(f"  ID: {note['id']}\n  Title: {note['title']}\n  Text: {
-                      note['text']}\n  Tags: {', '.join(note['tags'])}\n  {'-'*40}")
+                print(f"  ID: {note['id']}\n  Title: {note['title']}\n  Text:{note['text']}\n  Tags: {', '.join(note['tags'])}\n  {'-'*40}")
         else:
             raise ValueError(f"No notes found with tag '{tag}'.")
 
@@ -232,5 +222,4 @@ class NotesBook:
             raise ValueError("No notes available.")
         else:
             for note in self.notes:
-                print(f"ID: {note['id']}\nTitle: {note['title']}\nText: {
-                      note['text']}\nTags: {', '.join(note['tags'])}\n{'-'*40}")
+                print(f"ID: {note['id']}\nTitle: {note['title']}\nText: {note['text']}\nTags: {', '.join(note['tags'])}\n{'-'*40}")
