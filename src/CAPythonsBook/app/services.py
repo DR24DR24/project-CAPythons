@@ -221,6 +221,29 @@ class AddBirthdayCommand(FieldCommand):
                      birthday=field.value)
 
 
+@register_command("birthdays")
+class ShowUpcomingBirthdays(Command):
+    description = {
+        "en": "Shows all upcoming birthdays in a set amount of days",
+        "uk": "Виводить усі дні народження протягом заданої кількості днів"
+    }
+    example = {
+        "en": "[number of days]",
+        "uk": "[кількість днів]"
+    }
+    def execute(self, *args: str) -> None:
+        if len(args) != 1:
+            Message.error("incorrect_arguments")
+            return
+        set_number = int(args[0])
+        upcoming_birthdays = self.book_type.get_upcoming_birthdays(set_number)
+        if upcoming_birthdays:
+            for entry in upcoming_birthdays:
+                Message.info("upcoming_birthdays", name=entry["name"], congratulation_date=entry["congratulation_date"])
+        else:
+            Message.error("no_upcoming_birthdays", set_number=set_number)
+
+
 @register_command("add-email")
 class AddEmailToContactCommand(AddPhoneCommand):
     description = {

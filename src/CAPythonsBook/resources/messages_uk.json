@@ -13,7 +13,7 @@
   "incorrect_arguments": "Помилка: Неправильні аргументи.",
   "incorrect_command": "Помилка: Неправильна команда.",
   "no_birthday": "Для \"{name}\" не встановлено дату народження.",
-  "no_upcoming_birthdays": "Немає днів народження в найближчі 7 днів.",
+  "no_upcoming_birthdays": "Немає днів народження в найближчі {set_number} днів.",
   "phone_info": "Номер телефону \"{name}\": {phone}",
   "phone_not_found": "Для контакту \"{name}\" не знайдено номерів телефону.",
   "set_language": "Мову встановлено на {language}.",
