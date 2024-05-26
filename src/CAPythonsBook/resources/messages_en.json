@@ -24,5 +24,7 @@
   "note_added": "Note added successfully with title: {title}",
   "note_updated": "Note content updated successfully with title: {title}",
   "note_deleted": "Note deleted successfully with title: {title}",
-  "Email_added": "For \"{name}\" added E-mail {value} "
+  "Email_added": "For \"{name}\" added E-mail {value} ",
+  "address_added": "Address for {name} set to {address}",
+  "address_changed": "For {name} changed email to {address}"
 }

@@ -1,7 +1,7 @@
 from app import command_registry
 import re
 from app.interfaces import Command, FieldCommand
-from app.entities import Field, Name, Phone, Birthday, Record, AddressBook, NotesBook,Email
+from app.entities import Field, Name, Phone, Birthday, Record, AddressBook, NotesBook,Email,Address
 from infrastructure.storage import FileStorage
 from presentation.messages import Message
 from app.command_registry import register_command, get_command
@@ -259,6 +259,11 @@ class AddEmailToContactCommand(AddPhoneCommand):
         "en": "Adds an email to a contact.",
         "uk": "Додає електронну пошту до контакту.",
     }
+    example = {
+        "en": "[name] [email]",
+        "uk": "[ім'я] [поштова адреса]"
+    }
+
 
     def command_parameters_get(self):
         return {"field_class":Email,"field_name":"emails","message_type":"Email_added" }
@@ -285,6 +290,10 @@ class EditEmailOfContactCommand(ChangeContactCommand):
         "en": "Edits the email of a contact.",
         "uk": "Редагує електронну пошту контакту.",
     }
+    example = {
+        "en": "[name] [old email] [new email]",
+        "uk": "[ім'я] [стара поштова адреса] [нова поштова адреса]"
+    }
 
     def command_parameters_get(self):
         return {"field_class":Email,"field_name":"emails",
@@ -307,6 +316,52 @@ class EditEmailOfContactCommand(ChangeContactCommand):
     #         Message.info("email_changed", name=name, email=email)
     #     else:
     #         Message.error("contact_not_found", name=name)
+
+@register_command("add-address")
+class AddAddressToContactCommand(FieldCommand):
+    description = {
+        "en": "Adds an address to a contact.",
+        "uk": "Додає адресу до контакту."
+    }
+
+    example = {
+        "en": "[name] [address]",
+        "uk": "[ім'я] [адреса]"
+    }
+
+    def create_field(self, *args: str) -> Field:
+        return Address(args)
+
+    def execute_field(self, record: Record, field: Field) -> None:
+        """Adds an address to an existing contact."""
+        record.add_field("Address", field)
+        Message.info("address_added", name=record.name.value,
+                     address=field.value)
+
+
+@register_command("edit-address")
+class EditAddressOfContactCommand(Command):
+    description = {
+        "en": "Edits the address of a contact.",
+        "uk": "Редагує адресу контакту.",
+    }
+    example = {
+        "en": "[name] [address]",
+        "uk": "[ім'я] [адреса]"
+    }
+
+    def execute(self, *args: str) -> None:
+        """Редагує адресу контакту."""
+        name = args[0]
+        address = args[1:]
+        record = self.book_type.find_by_name(Name(name))
+
+        if record:
+            record.edit_field("Address", Address(address))
+            Message.info("address_changed", name=name, address=", ".join(address))
+        else:
+            Message.error("contact_not_found", name=name)
+
 
 
 @register_command("all")

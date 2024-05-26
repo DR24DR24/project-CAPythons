@@ -47,6 +47,12 @@ class Email(Field):
             raise ValueError("Invalid email format")
         super().__init__(value)
 
+class Address(Field):
+    def __init__(self, value: list):
+        if not value:
+            raise ValueError("Invalid address format")
+        string = ", ".join(value)
+        super().__init__(string)
 
 class Birthday(Field):
     def __init__(self, value: str):
