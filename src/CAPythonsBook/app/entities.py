@@ -14,6 +14,10 @@ class Field:
 
     def __str__(self):
         return str(self.value)
+    
+    def __eq__(self,other):
+        return self.value==other.value
+
 
     def to_dict(self):
         return self.value
