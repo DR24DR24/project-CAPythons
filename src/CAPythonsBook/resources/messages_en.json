@@ -6,7 +6,9 @@
   "contact_not_found": "Name '{name}' not found.",
   "contact_phone": "Phone number of \"{name}\": {phone}",
   "contact_removed": "Contact '{name}' removed successfully.",
-  "contact_updated": "For user \"{name}\", the phone has been changed from \"{old_phone}\" to \"{new_phone}\".",
+  "contact_updated": "For user \"{name}\", the phone has been changed from \"{old_value}\" to \"{new_value}\".",
+  "email_changed": "For user \"{name}\", the email has been changed from \"{old_value}\" to \"{new_value}\".",
+
   "enter_command": "Enter a command: ",
   "exit_message": "Good bye!",
   "greeting": "How can I help you?",

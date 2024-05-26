@@ -130,24 +130,33 @@ class ChangeContactCommand(Command): #TODO exception
         "uk": "[ім'я] [телефон] [телефон]"
     }
 
+    def command_parameters_get(self):
+        return {"field_class":Phone,"field_name":"phones",
+                "message_exists":"contact_exists",
+                "message_update":"contact_updated"
+                  }
+
     def execute(self, *args: str) -> None:
         """Changes the phone number of an existing contact."""
+        field_parameters=self.command_parameters_get()
         if len(args) != 3:
             Message.error("incorrect_arguments")
             return
         name, old_phone, new_phone = args
         record = self.book_type.find_by_name(Name(name))
-        if not(record and record.fields.get("phones")):
-            Message.warning("contact_exists", name=name, phone=new_phone)#TODO
+        if not(record and record.fields.get(field_parameters["field_name"])):
+            Message.warning(field_parameters["message_exists"], name=name, phone=new_phone)#TODO
         try:
             phones_to_change_index = \
-                record.fields["phones"].index(Phone(old_phone))
+                record.fields[field_parameters["field_name"]].index(\
+                    field_parameters["field_class"](old_phone))
         except Exception as e:
             #print(e)
-            Message.warning("contact_exists", name=name, phone=new_phone)#TODO
-        record.fields["phones"][phones_to_change_index]=Phone(new_phone)
-        Message.info("contact_updated", name=name,
-                             old_phone=old_phone, new_phone=new_phone)
+            Message.warning(field_parameters["message_exists"], name=name, phone=new_phone)#TODO
+        record.fields[field_parameters["field_name"]][phones_to_change_index]\
+            =field_parameters["field_class"](new_phone)
+        Message.info(field_parameters["message_update"], name=name,
+                             old_value=old_phone, new_value=new_phone)
         # phones_to_change[0] = record.phones[0].value if record.phones else None
         #     if new_phone == current_phone:
         #         Message.warning("contact_exists", name=name, phone=new_phone)
@@ -271,26 +280,33 @@ class AddEmailToContactCommand(AddPhoneCommand):
 
 
 @register_command("edit-email")
-class EditEmailOfContactCommand(Command):
+class EditEmailOfContactCommand(ChangeContactCommand):
     description = {
         "en": "Edits the email of a contact.",
         "uk": "Редагує електронну пошту контакту.",
     }
 
-    def execute(self, *args: str) -> None:
-        """Редагує електронну пошту контакту."""
-        if len(args) != 2:
-            Message.error("incorrect_arguments")
-            return
+    def command_parameters_get(self):
+        return {"field_class":Email,"field_name":"emails",
+                "message_exists":"contact_not_found",
+                "message_update":"email_changed"
+                }
+    
 
-        name, email = args
-        record = self.book_type.find_by_name(Name(name))
+    # def execute(self, *args: str) -> None:
+    #     """Редагує електронну пошту контакту."""
+    #     if len(args) != 2:
+    #         Message.error("incorrect_arguments")
+    #         return
 
-        if record:
-            record.edit_email(Email(email))
-            Message.info("email_changed", name=name, email=email)
-        else:
-            Message.error("contact_not_found", name=name)
+    #     name, email = args
+    #     record = self.book_type.find_by_name(Name(name))
+
+    #     if record:
+    #         record.edit_email(Email(email))
+    #         Message.info("email_changed", name=name, email=email)
+    #     else:
+    #         Message.error("contact_not_found", name=name)
 
 
 @register_command("all")

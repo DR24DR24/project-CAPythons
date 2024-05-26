@@ -40,8 +40,8 @@ class Phone(Field):
 
 
 class Email(Field):
-    EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
-
+    #EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
+    EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+.[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
     def __init__(self, value: str):
         if not self.EMAIL_REGEX.match(value):
             raise ValueError("Invalid email format")
