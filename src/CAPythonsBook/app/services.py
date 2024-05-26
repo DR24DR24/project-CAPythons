@@ -120,33 +120,43 @@ class AddContactCommand(Command):
 
 
 @register_command("change")
-class ChangeContactCommand(Command):
+class ChangeContactCommand(Command): #TODO exception
     description = {
         "en": "Changes the phone number of an existing contact.",
         "uk": "Змінює номер телефону існуючого контакту."
     }
     example = {
-        "en": "[name] [phone]",
-        "uk": "[ім'я] [телефон]"
+        "en": "[name] [old phone] [new phone]",
+        "uk": "[ім'я] [телефон] [телефон]"
     }
 
     def execute(self, *args: str) -> None:
         """Changes the phone number of an existing contact."""
-        if len(args) != 2:
+        if len(args) != 3:
             Message.error("incorrect_arguments")
             return
-        name, new_phone = args
+        name, old_phone, new_phone = args
         record = self.book_type.find_by_name(Name(name))
-        if record:
-            current_phone = record.phones[0].value if record.phones else None
-            if new_phone == current_phone:
-                Message.warning("contact_exists", name=name, phone=new_phone)
-            else:
-                record.edit_phone(record.phones[0], Phone(new_phone))
-                Message.info("contact_updated", name=name,
-                             old_phone=current_phone, new_phone=new_phone)
-        else:
-            Message.error("contact_not_found", name=name)
+        if not(record and record.fields.get("phones")):
+            Message.warning("contact_exists", name=name, phone=new_phone)#TODO
+        try:
+            phones_to_change_index = \
+                record.fields["phones"].index(Phone(old_phone))
+        except Exception as e:
+            #print(e)
+            Message.warning("contact_exists", name=name, phone=new_phone)#TODO
+        record.fields["phones"][phones_to_change_index]=Phone(new_phone)
+        Message.info("contact_updated", name=name,
+                             old_phone=old_phone, new_phone=new_phone)
+        # phones_to_change[0] = record.phones[0].value if record.phones else None
+        #     if new_phone == current_phone:
+        #         Message.warning("contact_exists", name=name, phone=new_phone)
+        #     else:
+        #         record.edit_phone(record.phones[0], Phone(new_phone))
+        #         Message.info("contact_updated", name=name,
+        #                      old_phone=current_phone, new_phone=new_phone)
+        # else:
+        #     Message.error("contact_not_found", name=name)
 
 
 @register_command("add-phone")
