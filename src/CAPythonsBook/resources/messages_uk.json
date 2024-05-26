@@ -13,12 +13,16 @@
   "incorrect_arguments": "Помилка: Неправильні аргументи.",
   "incorrect_command": "Помилка: Неправильна команда.",
   "no_birthday": "Для \"{name}\" не встановлено дату народження.",
-  "no_upcoming_birthdays": "Немає днів народження в найближчі 7 днів.",
+  "no_upcoming_birthdays": "Немає днів народження в найближчі {set_number} днів.",
   "phone_info": "Номер телефону \"{name}\": {phone}",
   "phone_not_found": "Для контакту \"{name}\" не знайдено номерів телефону.",
   "set_language": "Мову встановлено на {language}.",
   "upcoming_birthdays": "{name}: {congratulation_date}",
   "note_added": "Додано нотатку з заголовком: {title}",
   "note_updated": "Нотатку з заголовком \"{title}\" змінено на \"{new_title}\".",
-  "note_deleted": "Нотатку з заголовком \"{title}\" видалено."
+  "note_deleted": "Нотатку з заголовком \"{title}\" видалено.",
+  "email_added": "Електронна пошта контакта {name} встановлена на {email}",
+  "email_changed": "Контакту {name} змінено електронну пошту на {email}",
+  "address_added": "Адреса контакта {name} встановлена на {address}",
+  "address_changed": "Контакту {name} змінено адресу на {address}"
 }

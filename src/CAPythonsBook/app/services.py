@@ -1,7 +1,7 @@
 from app import command_registry
 import re
 from app.interfaces import Command, FieldCommand
-from app.entities import Field, Name, Phone, Birthday, Record, AddressBook, NotesBook,Email
+from app.entities import Field, Name, Phone, Birthday, Record, AddressBook, NotesBook, Email, Address
 from infrastructure.storage import FileStorage
 from presentation.messages import Message
 from app.command_registry import register_command, get_command
@@ -31,28 +31,23 @@ def input_error(handler: Callable) -> Callable:
             return handler(*args, **kwargs)
         except TypeError as e:
             print(
-                f"{Fore.RED}Error: Incorrect command.\n{
-                    Fore.MAGENTA}{e}{Style.RESET_ALL}"
+                f"{Fore.RED}Error: Incorrect command.\n{Fore.MAGENTA}{e}{Style.RESET_ALL}"
             )
         except ValueError as e:
             print(
-                f"{Fore.RED}Error: Incorrect arguments.\n{
-                    Fore.MAGENTA}{e}{Style.RESET_ALL}"
+                f"{Fore.RED}Error: Incorrect arguments.\n{Fore.MAGENTA}{e}{Style.RESET_ALL}"
             )
         except KeyError as e:
             print(
-                f"{Fore.RED}Error: Contact not found.\n{
-                    Fore.MAGENTA}{e}{Style.RESET_ALL}"
+                f"{Fore.RED}Error: Contact not found.\n{Fore.MAGENTA}{e}{Style.RESET_ALL}"
             )
         except IndexError as e:
             print(
-                f"{Fore.RED}Error: Index out of range.\n{
-                    Fore.MAGENTA}{e}{Style.RESET_ALL}"
+                f"{Fore.RED}Error: Index out of range.\n{Fore.MAGENTA}{e}{Style.RESET_ALL}"
             )
         except Exception as e:
             print(
-                f"{Fore.RED}An unexpected error occurred:\n{
-                    Fore.MAGENTA}{e}{Style.RESET_ALL}"
+                f"{Fore.RED}An unexpected error occurred:\n{Fore.MAGENTA}{e}{Style.RESET_ALL}"
             )
 
     return wrapper
@@ -221,30 +216,49 @@ class AddBirthdayCommand(FieldCommand):
                      birthday=field.value)
 
 
+@register_command("birthdays")
+class ShowUpcomingBirthdays(Command):
+    description = {
+        "en": "Shows all upcoming birthdays in a set amount of days",
+        "uk": "Виводить усі дні народження протягом заданої кількості днів"
+    }
+    example = {
+        "en": "[number of days]",
+        "uk": "[кількість днів]"
+    }
+    def execute(self, *args: str) -> None:
+        if len(args) != 1:
+            Message.error("incorrect_arguments")
+            return
+        set_number = int(args[0])
+        upcoming_birthdays = self.book_type.get_upcoming_birthdays(set_number)
+        if upcoming_birthdays:
+            for entry in upcoming_birthdays:
+                Message.info("upcoming_birthdays", name=entry["name"], congratulation_date=entry["congratulation_date"])
+        else:
+            Message.error("no_upcoming_birthdays", set_number=set_number)
+
+
 @register_command("add-email")
-class AddEmailToContactCommand(AddPhoneCommand):
+class AddEmailToContactCommand(FieldCommand):
     description = {
         "en": "Adds an email to a contact.",
-        "uk": "Додає електронну пошту до контакту.",
+        "uk": "Додає електронну пошту до контакту."
     }
 
-    def command_parameters_get(self):
-        return {"field_class":Email,"field_name":"emails","message_type":"Email_added" }
+    example = {
+        "en": "[name] [email]",
+        "uk": "[ім'я] [поштова адреса]"
+    }
 
-    # def execute(self, *args: str) -> None:
-    #     """Додає електронну пошту до контакту."""
-    #     if len(args) != 2:
-    #         Message.error("incorrect_arguments")
-    #         return
+    def create_field(self, *args: str) -> Field:
+        return Email(args[0])
 
-    #     name, email = args
-    #     record = self.book_type.find_by_name(Name(name))
-
-    #     if record:
-    #         record.add_email(Email(email))
-    #         Message.info("email_added", name=name, email=email)
-    #     else:
-    #         Message.error("contact_not_found", name=name)
+    def execute_field(self, record: Record, field: Field) -> None:
+        """Adds an email to an existing contact."""
+        record.add_field("Email", field)
+        Message.info("email_added", name=record.name.value,
+                     email=field.value)
 
 
 @register_command("edit-email")
@@ -252,6 +266,10 @@ class EditEmailOfContactCommand(Command):
     description = {
         "en": "Edits the email of a contact.",
         "uk": "Редагує електронну пошту контакту.",
+    }
+    example = {
+        "en": "[name] [email]",
+        "uk": "[ім'я] [поштова адреса]"
     }
 
     def execute(self, *args: str) -> None:
@@ -261,11 +279,59 @@ class EditEmailOfContactCommand(Command):
             return
 
         name, email = args
+        print(email, "EMAIL")
+        print(Email(email), "EMAIL OBJECT")
         record = self.book_type.find_by_name(Name(name))
 
         if record:
-            record.edit_email(Email(email))
+            record.edit_field("Email", Email(email))
             Message.info("email_changed", name=name, email=email)
+        else:
+            Message.error("contact_not_found", name=name)
+
+
+@register_command("add-address")
+class AddAddressToContactCommand(FieldCommand):
+    description = {
+        "en": "Adds an address to a contact.",
+        "uk": "Додає адресу до контакту."
+    }
+
+    example = {
+        "en": "[name] [address]",
+        "uk": "[ім'я] [адреса]"
+    }
+
+    def create_field(self, *args: str) -> Field:
+        return Address(args)
+
+    def execute_field(self, record: Record, field: Field) -> None:
+        """Adds an address to an existing contact."""
+        record.add_field("Address", field)
+        Message.info("address_added", name=record.name.value,
+                     address=field.value)
+
+
+@register_command("edit-address")
+class EditAddressOfContactCommand(Command):
+    description = {
+        "en": "Edits the address of a contact.",
+        "uk": "Редагує адресу контакту.",
+    }
+    example = {
+        "en": "[name] [address]",
+        "uk": "[ім'я] [адреса]"
+    }
+
+    def execute(self, *args: str) -> None:
+        """Редагує адресу контакту."""
+        name = args[0]
+        address = args[1:]
+        record = self.book_type.find_by_name(Name(name))
+
+        if record:
+            record.edit_field("Address", Address(address))
+            Message.info("address_changed", name=name, address=", ".join(address))
         else:
             Message.error("contact_not_found", name=name)
 
@@ -469,8 +535,7 @@ class SearchNotesCommand(Command):
         results = self.book_type.search_notes(keyword)
         if results:
             for note in results:
-                print(f"\nID: {note['id']}\nTitle: {note['title']}\nText: {
-                      note['text']}\nTags: {', '.join(note['tags'])}\n")
+                print(f"\nID: {note['id']}\nTitle: {note['title']}\nText: {note['text']}\nTags: {', '.join(note['tags'])}\n")
                 print('-'*40)
         else:
             Message.info("no_results_found")
@@ -528,8 +593,7 @@ class HelpCommand(Command):
         )
 
         command_header, example_header, description_header = headers[language]
-        print(f"\n{Style.BRIGHT}{Fore.CYAN}{command_header.ljust(max_command_len)}\t{
-              example_header.ljust(max_example_len)}\t{description_header}{Style.RESET_ALL}")
+        print(f"\n{Style.BRIGHT}{Fore.CYAN}{command_header.ljust(max_command_len)}\t{example_header.ljust(max_example_len)}\t{description_header}{Style.RESET_ALL}")
 
         for command_name, command_class in command_registry.command_registry.items():
             description = command_class.description.get(
@@ -537,10 +601,8 @@ class HelpCommand(Command):
             example = command_class.example.get(language, "") if hasattr(
                 command_class, 'example') else ""
 
-            command_str = f"{Style.BRIGHT}{Fore.WHITE}{command_name.ljust(max_command_len)}{
-                Style.RESET_ALL}"
-            example_str = f"{Fore.WHITE}{example.ljust(max_example_len)}{
-                Style.RESET_ALL}"
+            command_str = f"{Style.BRIGHT}{Fore.WHITE}{command_name.ljust(max_command_len)}{Style.RESET_ALL}"
+            example_str = f"{Fore.WHITE}{example.ljust(max_example_len)}{Style.RESET_ALL}"
             description_str = f"{Fore.GREEN}{description}{Style.RESET_ALL}"
 
             print(f"{command_str}\t{example_str}\t{description_str}")
