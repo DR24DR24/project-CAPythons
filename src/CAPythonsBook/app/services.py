@@ -1,7 +1,7 @@
 from app import command_registry
 import re
 from app.interfaces import Command, FieldCommand
-from app.entities import Field, Name, Phone, Birthday, Record, AddressBook, NotesBook
+from app.entities import Field, Name, Phone, Birthday, Record, AddressBook, NotesBook,Email,Address
 from infrastructure.storage import FileStorage
 from presentation.messages import Message
 from app.command_registry import register_command, get_command
@@ -102,12 +102,16 @@ class AddContactCommand(Command):
         name, phone = args
         record = self.book_type.find_by_name(Name(name))
         if record:
-            if any(p.value == phone for p in record.phones):
+            #print(type(record.fields["phones"]))#debug
+            #print(record.fields["phones"])#debug
+            if any(p.value == phone for p in record.fields["phones"]):
                 Message.warning("contact_exists", name=name, phone=phone)
             else:
-                current_phone = record.phones[0].value if record.phones else "No phone"
-                Message.warning("contact_exists", name=name,
-                                phone=current_phone)
+                if not record.fields.get("phones"):
+                    record.fields["phones"]=[]
+                record.fields["phones"].append(Phone(phone))
+                #current_phone = record.phones[0].value if record.phones else "No phone"
+                Message.info("phone_added", name=name, phone=phone)
         else:
             new_record = Record(Name(name))
             new_record.add_phone(Phone(phone))
@@ -116,33 +120,52 @@ class AddContactCommand(Command):
 
 
 @register_command("change")
-class ChangeContactCommand(Command):
+class ChangeContactCommand(Command): #TODO exception
     description = {
         "en": "Changes the phone number of an existing contact.",
         "uk": "Змінює номер телефону існуючого контакту."
     }
     example = {
-        "en": "[name] [phone]",
-        "uk": "[ім'я] [телефон]"
+        "en": "[name] [old phone] [new phone]",
+        "uk": "[ім'я] [телефон] [телефон]"
     }
+
+    def command_parameters_get(self):
+        return {"field_class":Phone,"field_name":"phones",
+                "message_exists":"contact_exists",
+                "message_update":"contact_updated"
+                  }
 
     def execute(self, *args: str) -> None:
         """Changes the phone number of an existing contact."""
-        if len(args) != 2:
+        field_parameters=self.command_parameters_get()
+        if len(args) != 3:
             Message.error("incorrect_arguments")
             return
-        name, new_phone = args
+        name, old_phone, new_phone = args
         record = self.book_type.find_by_name(Name(name))
-        if record:
-            current_phone = record.phones[0].value if record.phones else None
-            if new_phone == current_phone:
-                Message.warning("contact_exists", name=name, phone=new_phone)
-            else:
-                record.edit_phone(record.phones[0], Phone(new_phone))
-                Message.info("contact_updated", name=name,
-                             old_phone=current_phone, new_phone=new_phone)
-        else:
-            Message.error("contact_not_found", name=name)
+        if not(record and record.fields.get(field_parameters["field_name"])):
+            Message.warning(field_parameters["message_exists"], name=name, phone=new_phone)#TODO
+        try:
+            phones_to_change_index = \
+                record.fields[field_parameters["field_name"]].index(\
+                    field_parameters["field_class"](old_phone))
+        except Exception as e:
+            #print(e)
+            Message.warning(field_parameters["message_exists"], name=name, phone=new_phone)#TODO
+        record.fields[field_parameters["field_name"]][phones_to_change_index]\
+            =field_parameters["field_class"](new_phone)
+        Message.info(field_parameters["message_update"], name=name,
+                             old_value=old_phone, new_value=new_phone)
+        # phones_to_change[0] = record.phones[0].value if record.phones else None
+        #     if new_phone == current_phone:
+        #         Message.warning("contact_exists", name=name, phone=new_phone)
+        #     else:
+        #         record.edit_phone(record.phones[0], Phone(new_phone))
+        #         Message.info("contact_updated", name=name,
+        #                      old_phone=current_phone, new_phone=new_phone)
+        # else:
+        #     Message.error("contact_not_found", name=name)
 
 
 @register_command("add-phone")
@@ -155,19 +178,35 @@ class AddPhoneCommand(FieldCommand):
         "en": "[name] [phone]",
         "uk": "[ім'я] [телефон]"
     }
+    
+    #CommandData={"field_class":Phone,"field_name":"phones","message_type":"phone_added" }
 
-    def create_field(self, *args: str) -> Field:
-        return Phone(args[0])
+    def command_parameters_get(self):
+        return {"field_class":Phone,"field_name":"phones","message_type":"phone_added" }
 
-    def execute_field(self, record: Record, field: Field) -> None:
+    def create_field(self, *args: str, **kwargs) -> Field:
+        return kwargs["field_class"](args[0])
+
+    def execute_field(self, record: Record, field: Field,**kwargs) -> None:
         """Adds a new phone number to an existing contact."""
-        if any(p.value == field.value for p in record.phones):
-            Message.warning("contact_exists",
-                            name=record.name.value, phone=field.value)
+        # if any(p.value == field.value for p in record.phones):
+        #     Message.warning("contact_exists",
+        #                     name=record.name.value, phone=field.value)
+        # else:
+        #     record.add_phone(field)
+        #     Message.info("contact_added", name=record.name.value,
+        #                  phone=field.value)
+        value=field.value
+        if  not record.fields.get(kwargs["field_name"]):
+            record.fields[kwargs["field_name"]]=[] 
+        if any(p.value == value for p in record.fields[kwargs["field_name"]]):
+            Message.warning("contact_exists", name=record.name, phone=value)
         else:
-            record.add_phone(field)
-            Message.info("contact_added", name=record.name.value,
-                         phone=field.value)
+            if not record.fields.get(kwargs["field_name"]):
+                record.fields[kwargs["field_name"]]=[]
+            record.fields[kwargs["field_name"]].append(field)
+            Message.info(kwargs["message_type"], name=record.name, value=value)
+
 
 
 @register_command("add-birthday")
@@ -190,6 +229,168 @@ class AddBirthdayCommand(FieldCommand):
         Message.info("birthday_set", name=record.name.value,
                      birthday=field.value)
 
+@register_command("delete")
+class DeleteCommand(Command):
+    description = {
+        "en": "Delete contact.",
+        "uk": "Видаляє контакт.",
+    }
+    example = {
+        "en": "[Name]",
+        "uk": "[Ім'я]"
+    }
+    def execute(self, *args: str) -> None:
+        if len(args) !=1:
+            Message.error("incorrect_arguments")
+            return
+        name, *_  = args
+        key = None
+        for k, v in self.book_type.data.items():
+            if v.name.value == name:
+                key = k
+                break
+        #record = self.book_type.find_by_name(Name(name))
+        if not key:
+            Message.error("contact_not_found", name=name)
+            return
+        Message.info("contact delete", name=name)
+        del self.book_type.data[key]
+
+
+@register_command("birthdays")
+class ShowUpcomingBirthdays(Command):
+    description = {
+        "en": "Shows all upcoming birthdays in a set amount of days",
+        "uk": "Виводить усі дні народження протягом заданої кількості днів"
+    }
+    example = {
+        "en": "[number of days]",
+        "uk": "[кількість днів]"
+    }
+    def execute(self, *args: str) -> None:
+        if len(args) != 1:
+            Message.error("incorrect_arguments")
+            return
+        set_number = int(args[0])
+        upcoming_birthdays = self.book_type.get_upcoming_birthdays(set_number)
+        if upcoming_birthdays:
+            for entry in upcoming_birthdays:
+                Message.info("upcoming_birthdays", name=entry["name"], congratulation_date=entry["congratulation_date"])
+        else:
+            Message.error("no_upcoming_birthdays", set_number=set_number)
+
+
+@register_command("add-email")
+class AddEmailToContactCommand(AddPhoneCommand):
+    description = {
+        "en": "Adds an email to a contact.",
+        "uk": "Додає електронну пошту до контакту.",
+    }
+    example = {
+        "en": "[name] [email]",
+        "uk": "[ім'я] [поштова адреса]"
+    }
+
+
+    def command_parameters_get(self):
+        return {"field_class":Email,"field_name":"emails","message_type":"Email_added" }
+
+    # def execute(self, *args: str) -> None:
+    #     """Додає електронну пошту до контакту."""
+    #     if len(args) != 2:
+    #         Message.error("incorrect_arguments")
+    #         return
+
+    #     name, email = args
+    #     record = self.book_type.find_by_name(Name(name))
+
+    #     if record:
+    #         record.add_email(Email(email))
+    #         Message.info("email_added", name=name, email=email)
+    #     else:
+    #         Message.error("contact_not_found", name=name)
+
+
+@register_command("edit-email")
+class EditEmailOfContactCommand(ChangeContactCommand):
+    description = {
+        "en": "Edits the email of a contact.",
+        "uk": "Редагує електронну пошту контакту.",
+    }
+    example = {
+        "en": "[name] [old email] [new email]",
+        "uk": "[ім'я] [стара поштова адреса] [нова поштова адреса]"
+    }
+
+    def command_parameters_get(self):
+        return {"field_class":Email,"field_name":"emails",
+                "message_exists":"contact_not_found",
+                "message_update":"email_changed"
+                }
+    
+
+    # def execute(self, *args: str) -> None:
+    #     """Редагує електронну пошту контакту."""
+    #     if len(args) != 2:
+    #         Message.error("incorrect_arguments")
+    #         return
+
+    #     name, email = args
+    #     record = self.book_type.find_by_name(Name(name))
+
+    #     if record:
+    #         record.edit_email(Email(email))
+    #         Message.info("email_changed", name=name, email=email)
+    #     else:
+    #         Message.error("contact_not_found", name=name)
+
+@register_command("add-address")
+class AddAddressToContactCommand(FieldCommand):
+    description = {
+        "en": "Adds an address to a contact.",
+        "uk": "Додає адресу до контакту."
+    }
+
+    example = {
+        "en": "[name] [address]",
+        "uk": "[ім'я] [адреса]"
+    }
+
+    def create_field(self, *args: str) -> Field:
+        return Address(args)
+
+    def execute_field(self, record: Record, field: Field) -> None:
+        """Adds an address to an existing contact."""
+        record.add_field("Address", field)
+        Message.info("address_added", name=record.name.value,
+                     address=field.value)
+        
+
+
+
+@register_command("edit-address")
+class EditAddressOfContactCommand(Command):
+    description = {
+        "en": "Edits the address of a contact.",
+        "uk": "Редагує адресу контакту.",
+    }
+    example = {
+        "en": "[name] [address]",
+        "uk": "[ім'я] [адреса]"
+    }
+
+    def execute(self, *args: str) -> None:
+        """Редагує адресу контакту."""
+        name = args[0]
+        address = args[1:]
+        record = self.book_type.find_by_name(Name(name))
+
+        if record:
+            record.edit_field("Address", Address(address))
+            Message.info("address_changed", name=name, address=", ".join(address))
+        else:
+            Message.error("contact_not_found", name=name)
+
 
 @register_command("all")
 class ShowAllContactsCommand(Command):
@@ -205,6 +406,7 @@ class ShowAllContactsCommand(Command):
                 print(str(record))
         else:
             raise IndexError("No contacts available.")
+
 
 @register_command("search-contact")
 class SearchContactsCommand(Command):
@@ -223,12 +425,14 @@ class SearchContactsCommand(Command):
             Message.error("incorrect_arguments")
             return
         keyword = " ".join(args)
-        results = [record for record in self.book_type.values() if record.matches_criteria(keyword)]
+        results = [record for record in self.book_type.values()
+                   if record.matches_criteria(keyword)]
         if results:
             for record in results:
                 print(record)
         else:
             Message.info("no_results_found")
+
 
 @register_command("show-phone")
 class ShowPhoneCommand(Command):
@@ -254,6 +458,31 @@ class ShowPhoneCommand(Command):
         else:
             Message.error("contact_not_found", name=name)
 
+
+@register_command("find-tag-note")
+class FindNoteCommand(Command):
+    description = {
+        "en": "Finds a note by its title.",
+        "uk": "Знаходить нотатку за заголовком.",
+    }
+    example = {
+        "en": "[title]",
+        "uk": "[заголовок]"
+    }
+
+    def execute(self, *args: tuple) -> None:
+        """Знаходить нотатку за заголовком.
+
+        Command: find-tag-note [tag_name]
+        """
+        if len(args) != 1:
+            Message.error("incorrect_arguments")
+            return
+
+        tag = args[0]
+        self.book_type.find_notes_with_same_tags(tag)
+
+
 @register_command("add-note")
 class AddNoteCommand(Command):
     description = {
@@ -266,7 +495,10 @@ class AddNoteCommand(Command):
     }
 
     def execute(self, *args: tuple) -> None:
-        """Додає нову нотатку."""
+        """Додає нову нотатку.
+
+        Command: add-note [title] [text] [#tags]
+        """
         def remove_hash_words(s: str) -> str:
             return re.sub(r'\s*#[\w-]+', '', s).strip()
 
@@ -277,6 +509,7 @@ class AddNoteCommand(Command):
         title = args[0]
         text = remove_hash_words(' '.join(args[1:]))
         tags = extract_hash_words(' '.join(args[1:]))
+
         if len(args) < 2:
             Message.error("incorrect_arguments")
             return
@@ -296,7 +529,10 @@ class EditNoteCommand(Command):
     }
 
     def execute(self, *args: tuple) -> None:
-        """Редагує наявну нотатку."""
+        """Редагує наявну нотатку.
+
+        Command: edit-note [id] [title] [text]
+        """
         id_note = args[0]
         title = args[1]
         text = ' '.join(args[2:])
@@ -320,13 +556,17 @@ class DeleteNoteCommand(Command):
     }
 
     def execute(self, *args: tuple) -> None:
-        """Видаляє наявну нотатку."""
+        """Видаляє наявну нотатку.
+
+        Command: delete-note [id]
+        """
         if len(args) != 1:
             Message.error("incorrect_arguments")
             return
-        title = args[0]
-        self.book_type.delete_note(title)
-        Message.info("note_deleted", title=title)
+        note_id = args[0]
+        self.book_type.delete_note(note_id)
+        Message.info("note_deleted", title=note_id)
+
 
 @register_command("search-notes")
 class SearchNotesCommand(Command):
@@ -340,7 +580,10 @@ class SearchNotesCommand(Command):
     }
 
     def execute(self, *args: str) -> None:
-        """Searches for notes matching the given criteria."""
+        """Searches for notes matching the given criteria.
+
+        Command: search-notes [title or text or tag]
+        """
         if len(args) < 1:
             Message.error("incorrect_arguments")
             return
@@ -348,10 +591,12 @@ class SearchNotesCommand(Command):
         results = self.book_type.search_notes(keyword)
         if results:
             for note in results:
-                print(f"\nID: {note['id']}\nTitle: {note['title']}\nText: {note['text']}\nTags: {', '.join(note['tags'])}\n")
+                print(f"\nID: {note['id']}\nTitle: {note['title']}\nText: {
+                      note['text']}\nTags: {', '.join(note['tags'])}\n")
                 print('-'*40)
         else:
             Message.info("no_results_found")
+
 
 @register_command("display-notes")
 class DisplayNotesCommand(Command):
@@ -361,10 +606,11 @@ class DisplayNotesCommand(Command):
     }
 
     def execute(self, *args: str) -> None:
-        """Виводить всі нотатки."""
+        """Виводить всі нотатки
+
+        Command: display-notes
+        ."""
         self.book_type.display_notes()
-
-
 
 @register_command("exit")
 @register_command("close")
@@ -379,8 +625,7 @@ class ExitCommand(Command):
         storage = FileStorage("addressbook.json")
         storage.save_contacts(self.book_type.data)
         Message.info("exit_message")
-        sys.exit()
-
+        Command.exit_command_flag = True  # sys.exit()
 
 @register_command("help")
 class HelpCommand(Command):
@@ -396,27 +641,34 @@ class HelpCommand(Command):
             "uk": ("Команда", "Параметри", "Опис")
         }
         language = settings.language
-        max_command_len = max(len(command_name) for command_name in command_registry.command_registry.keys())
+        max_command_len = max(
+            len(command_name) for command_name in command_registry.command_registry.keys())
         max_example_len = max(
-            len(command_class.example.get(language, "")) if hasattr(command_class, 'example') else 0
+            len(command_class.example.get(language, "")) if hasattr(
+                command_class, 'example') else 0
             for command_class in command_registry.command_registry.values()
         )
 
         command_header, example_header, description_header = headers[language]
-        print(f"\n{Style.BRIGHT}{Fore.CYAN}{command_header.ljust(max_command_len)}\t{example_header.ljust(max_example_len)}\t{description_header}{Style.RESET_ALL}")
-
+        print(f"\n{Style.BRIGHT}{Fore.CYAN}{command_header.ljust(max_command_len)}\t{
+              example_header.ljust(max_example_len)}\t{description_header}{Style.RESET_ALL}")
 
         for command_name, command_class in command_registry.command_registry.items():
-            description = command_class.description.get(language, "No description available.")
-            example = command_class.example.get(language, "") if hasattr(command_class, 'example') else ""
-            
-            command_str = f"{Style.BRIGHT}{Fore.WHITE}{command_name.ljust(max_command_len)}{Style.RESET_ALL}"
-            example_str = f"{Fore.WHITE}{example.ljust(max_example_len)}{Style.RESET_ALL}"
+            description = command_class.description.get(
+                language, "No description available.")
+            example = command_class.example.get(language, "") if hasattr(
+                command_class, 'example') else ""
+
+            command_str = f"{Style.BRIGHT}{Fore.WHITE}{command_name.ljust(max_command_len)}{
+                Style.RESET_ALL}"
+            example_str = f"{Fore.WHITE}{example.ljust(max_example_len)}{
+                Style.RESET_ALL}"
             description_str = f"{Fore.GREEN}{description}{Style.RESET_ALL}"
-            
+
             print(f"{command_str}\t{example_str}\t{description_str}")
-        
+
         print()
+
 
 @register_command("set-language")
 class SetLanguageCommand(Command):
