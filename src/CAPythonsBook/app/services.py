@@ -102,15 +102,15 @@ class AddContactCommand(Command):
         name, phone = args
         record = self.book_type.find_by_name(Name(name))
         if record:
-            #print(type(record.fields["phones"]))#debug
-            #print(record.fields["phones"])#debug
-            if any(p.value == phone for p in record.fields["phones"]):
+            #print(type(record.fields["phone"]))#debug
+            #print(record.fields["phone"])#debug
+            if any(p.value == phone for p in record.fields["phone"]):
                 Message.warning("contact_exists", name=name, phone=phone)
             else:
-                if not record.fields.get("phones"):
-                    record.fields["phones"]=[]
-                record.fields["phones"].append(Phone(phone))
-                #current_phone = record.phones[0].value if record.phones else "No phone"
+                if not record.fields.get("phone"):
+                    record.fields["phone"]=[]
+                record.fields["phone"].append(Phone(phone))
+                #current_phone = record.phone[0].value if record.phone else "No phone"
                 Message.info("phone_added", name=name, phone=phone)
         else:
             new_record = Record(Name(name))
@@ -129,6 +129,7 @@ class ChangeContactCommand(Command): #TODO exception
         "en": "[name] [old phone] [new phone]",
         "uk": "[ім'я] [телефон] [телефон]"
     }
+    expected_fields = [Name, Phone]
 
     def command_parameters_get(self):
         return {"field_class":Phone,"field_name":"phones",
@@ -161,7 +162,7 @@ class ChangeContactCommand(Command): #TODO exception
         #     if new_phone == current_phone:
         #         Message.warning("contact_exists", name=name, phone=new_phone)
         #     else:
-        #         record.edit_phone(record.phones[0], Phone(new_phone))
+        #         record.edit_phone(record.phone[0], Phone(new_phone))
         #         Message.info("contact_updated", name=name,
         #                      old_phone=current_phone, new_phone=new_phone)
         # else:
@@ -179,17 +180,17 @@ class AddPhoneCommand(FieldCommand):
         "uk": "[ім'я] [телефон]"
     }
     
-    #CommandData={"field_class":Phone,"field_name":"phones","message_type":"phone_added" }
+    #CommandData={"field_class":Phone,"field_name":"phone","message_type":"phone_added" }
 
     def command_parameters_get(self):
-        return {"field_class":Phone,"field_name":"phones","message_type":"phone_added" }
+        return {"field_class":Phone,"field_name":"phone","message_type":"phone_added" }
 
     def create_field(self, *args: str, **kwargs) -> Field:
         return kwargs["field_class"](args[0])
 
     def execute_field(self, record: Record, field: Field,**kwargs) -> None:
         """Adds a new phone number to an existing contact."""
-        # if any(p.value == field.value for p in record.phones):
+        # if any(p.value == field.value for p in record.phone):
         #     Message.warning("contact_exists",
         #                     name=record.name.value, phone=field.value)
         # else:
@@ -293,7 +294,7 @@ class AddEmailToContactCommand(AddPhoneCommand):
 
 
     def command_parameters_get(self):
-        return {"field_class":Email,"field_name":"emails","message_type":"Email_added" }
+        return {"field_class":Email,"field_name":"email","message_type":"Email_added" }
 
     # def execute(self, *args: str) -> None:
     #     """Додає електронну пошту до контакту."""
@@ -317,6 +318,8 @@ class EditEmailOfContactCommand(ChangeContactCommand):
         "en": "Edits the email of a contact.",
         "uk": "Редагує електронну пошту контакту.",
     }
+
+    expected_fields = [Name, Email]
     example = {
         "en": "[name] [old email] [new email]",
         "uk": "[ім'я] [стара поштова адреса] [нова поштова адреса]"
@@ -453,8 +456,8 @@ class ShowPhoneCommand(Command):
         name = args[0]
         record = self.book_type.find_by_name(Name(name))
         if record:
-            phones = "; ".join([phone.value for phone in record.phones])
-            Message.info("phone_info", name=name, phone=phones)
+            phone = "; ".join([phone.value for phone in record.phone])
+            Message.info("phone_info", name=name, phone=phone)
         else:
             Message.error("contact_not_found", name=name)
 

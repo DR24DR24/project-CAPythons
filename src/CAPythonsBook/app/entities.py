@@ -41,7 +41,7 @@ class Phone(Field):
 
 class Email(Field):
     #EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
-    EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+.[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
+    EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+[.@][a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
     def __init__(self, value: str):
         if not self.EMAIL_REGEX.match(value):
             raise ValueError("Invalid email format")
@@ -89,9 +89,9 @@ class Record:
         return False
 
     def add_phone(self, phone: Phone):
-        if "phones" not in self.fields:
-            self.fields["phones"] = []
-        self.fields["phones"].append(phone)
+        if "phone" not in self.fields:
+            self.fields["phone"] = []
+        self.fields["phone"].append(phone)
 
 
     # def add_email(self, email: Email):
@@ -234,3 +234,12 @@ class NotesBook:
             for note in self.notes:
                 print(f"ID: {note['id']}\nTitle: {note['title']}\nText: {
                       note['text']}\nTags: {', '.join(note['tags'])}\n{'-'*40}")
+
+
+def update_field_types():
+    field_types = {}
+    for subclass in Field.__subclasses__():
+        field_types[subclass.__name__.lower()] = subclass
+    return field_types
+
+FIELD_TYPES = update_field_types()
