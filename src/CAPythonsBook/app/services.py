@@ -168,6 +168,48 @@ class ChangeContactCommand(Command): #TODO exception
         # else:
         #     Message.error("contact_not_found", name=name)
 
+@register_command("delete-phone")
+class DeleteContactCommand(Command): #TODO ukranian
+    description = {
+        "en": "Delete the phone number of an existing contact.",
+        "uk": "Видаляє номер телефону існуючого контакту."
+    }
+    example = {
+        "en": "[name] [phone] ",
+        "uk": "[ім'я] [телефон] "
+    }
+    expected_fields = [Name, Phone]# TODO
+
+    def command_parameters_get(self):
+        return {"field_class":Phone,"field_name":"phones",
+                "message_exists":"value_exists",
+                "message_deleted":"value_deleted"
+                  }
+
+    def execute(self, *args: str) -> None:
+        """Delete the phone number of an existing contact."""
+        field_parameters=self.command_parameters_get()
+        if len(args) != 2: #number of the parameters after the command
+            Message.error("incorrect_arguments")
+            return
+        name, value = args
+        record = self.book_type.find_by_name(Name(name))
+        if not(record):
+            Message.warning("contact_not_found", name=name)#TODO
+        if not record.fields.get(field_parameters["field_name"]): 
+            Message.warning("value_exists", name=name, value=value) #TODO
+        try:
+            # phones_to_change_index = \
+            #     record.fields[field_parameters["field_name"]].index(\
+            #         field_parameters["field_class"](value))
+            record.fields[field_parameters["field_name"]].remove(\
+                 field_parameters["field_class"](value)         )
+        except Exception as e:
+            #print(e)
+            Message.warning("value_exists", name=name, value=value) #TODO
+                 
+        Message.info("value_deleted", name=name, value=value)
+
 
 @register_command("add-phone")
 class AddPhoneCommand(FieldCommand):
@@ -230,32 +272,32 @@ class AddBirthdayCommand(FieldCommand):
         Message.info("birthday_set", name=record.name.value,
                      birthday=field.value)
 
-@register_command("delete")
-class DeleteCommand(Command):
-    description = {
-        "en": "Delete contact.",
-        "uk": "Видаляє контакт.",
-    }
-    example = {
-        "en": "[Name]",
-        "uk": "[Ім'я]"
-    }
-    def execute(self, *args: str) -> None:
-        if len(args) !=1:
-            Message.error("incorrect_arguments")
-            return
-        name, *_  = args
-        key = None
-        for k, v in self.book_type.data.items():
-            if v.name.value == name:
-                key = k
-                break
-        #record = self.book_type.find_by_name(Name(name))
-        if not key:
-            Message.error("contact_not_found", name=name)
-            return
-        Message.info("contact delete", name=name)
-        del self.book_type.data[key]
+# @register_command("delete")
+# class DeleteCommand(Command):
+#     description = {
+#         "en": "Delete contact.",
+#         "uk": "Видаляє контакт.",
+#     }
+#     example = {
+#         "en": "[Name]",
+#         "uk": "[Ім'я]"
+#     }
+#     def execute(self, *args: str) -> None:
+#         if len(args) !=1:
+#             Message.error("incorrect_arguments")
+#             return
+#         name, *_  = args
+#         key = None
+#         for k, v in self.book_type.data.items():
+#             if v.name.value == name:
+#                 key = k
+#                 break
+#         #record = self.book_type.find_by_name(Name(name))
+#         if not key:
+#             Message.error("contact_not_found", name=name)
+#             return
+#         Message.info("contact delete", name=name)
+#         del self.book_type.data[key]
 
 
 @register_command("birthdays")

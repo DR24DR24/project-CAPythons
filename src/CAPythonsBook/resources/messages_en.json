@@ -19,6 +19,8 @@
   "phone_info": "Phone number of \"{name}\": {phone}",
   "phone_added": "For \"{name}\" added phone {value}",
   "phone_not_found": "No phone numbers found for contact \"{name}\".",
+  "value_exists": "\"{value}\" for contact \"{name}\" not found.",
+  "value_deleted": "\"{value}\" for contact \"{name}\" is deleted.",
   "set_language": "Language set to {language}.",
   "upcoming_birthdays": "{name}: {congratulation_date}",
   "note_added": "Note added successfully with title: {title}",
@@ -26,6 +28,5 @@
   "note_deleted": "Note deleted successfully with title: {title}",
   "Email_added": "For \"{name}\" added E-mail {value} ",
   "address_added": "Address for {name} set to {address}",
-  "address_changed": "For {name} changed email to {address}",
-  "contact delete": "Delete contact {name}"
+  "address_changed": "For {name} changed email to {address}"
 }

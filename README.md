@@ -90,6 +90,6 @@ password = <token>
 
 Command:
 
-twine upload -r testpypi dist/* --verbose
 python -m build
 
+twine upload -r testpypi dist/* --verbose
