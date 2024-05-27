@@ -40,13 +40,19 @@ class Phone(Field):
 
 
 class Email(Field):
-    EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
-
+    #EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
+    EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+.[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
     def __init__(self, value: str):
         if not self.EMAIL_REGEX.match(value):
             raise ValueError("Invalid email format")
         super().__init__(value)
 
+class Address(Field):
+    def __init__(self, value: list):
+        if not value:
+            raise ValueError("Invalid address format")
+        string = ", ".join(value)
+        super().__init__(string)
 
 class Birthday(Field):
     def __init__(self, value: str):
@@ -129,28 +135,22 @@ class AddressBook(UserDict):
                 return record
         return None
 
-    def get_upcoming_birthdays(self) -> List[Dict[str, str]]:
+    def get_upcoming_birthdays(self, set_number: int) -> List[Dict[str, str]]:
         today = datetime.today().date()
         upcoming_birthdays = []
 
         for record in self.data.values():
-            if "birthday" in record.fields:
+            if "Birthday" in record.fields:
                 birthday = datetime.strptime(
-                    record.fields["birthday"].value, "%d.%m.%Y").date()
+                    record.fields["Birthday"].value, "%d.%m.%Y").date()
                 birthday_this_year = birthday.replace(year=today.year)
-
                 if birthday_this_year < today:
                     birthday_this_year = birthday_this_year.replace(
                         year=today.year + 1)
 
                 day_difference = (birthday_this_year - today).days
-                if 0 <= day_difference <= 7:
+                if 0 <= day_difference <= set_number:
                     congratulation_date = birthday_this_year
-                    if birthday_this_year.weekday() > 4:
-                        congratulation_date += timedelta(
-                            days=7 - birthday_this_year.weekday()
-                        )
-
                     upcoming_birthdays.append(
                         {
                             "name": record.fields["name"].value,

@@ -6,14 +6,16 @@
   "contact_not_found": "Name '{name}' not found.",
   "contact_phone": "Phone number of \"{name}\": {phone}",
   "contact_removed": "Contact '{name}' removed successfully.",
-  "contact_updated": "For user \"{name}\", the phone has been changed from \"{old_phone}\" to \"{new_phone}\".",
+  "contact_updated": "For user \"{name}\", the phone has been changed from \"{old_value}\" to \"{new_value}\".",
+  "email_changed": "For user \"{name}\", the email has been changed from \"{old_value}\" to \"{new_value}\".",
+
   "enter_command": "Enter a command: ",
   "exit_message": "Good bye!",
   "greeting": "How can I help you?",
   "incorrect_arguments": "Error: Incorrect arguments.",
   "incorrect_command": "Error: Incorrect command.",
   "no_birthday": "No birthday set for \"{name}\".",
-  "no_upcoming_birthdays": "No upcoming birthdays in the next 7 days.",
+  "no_upcoming_birthdays": "No upcoming birthdays in {set_number} days.",
   "phone_info": "Phone number of \"{name}\": {phone}",
   "phone_added": "For \"{name}\" added phone {value}",
   "phone_not_found": "No phone numbers found for contact \"{name}\".",
@@ -22,5 +24,8 @@
   "note_added": "Note added successfully with title: {title}",
   "note_updated": "Note content updated successfully with title: {title}",
   "note_deleted": "Note deleted successfully with title: {title}",
-  "Email_added": "For \"{name}\" added E-mail {value} "
+  "Email_added": "For \"{name}\" added E-mail {value} ",
+  "address_added": "Address for {name} set to {address}",
+  "address_changed": "For {name} changed email to {address}",
+  "contact delete": "Delete contact {name}"
 }
