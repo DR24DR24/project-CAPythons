@@ -1,34 +1,132 @@
 {
-    "d061f3ba-271d-4c98-8f81-f19ccc931337": {
-        "name": "test_№001",
+    "d70a7dd6-4b5a-4e12-8a30-3c44e2e87df6": {
+        "name": "PyMan",
         "phones": [
-            "1234567890"
-        ]
-    },
-    "e13d4d60-7f50-4a5a-9efa-91e5fc37c1bc": {
-        "name": "test",
-        "phones": [
-            "1234123412"
-        ],
-        "Birthday": "27.05.2222"
-    },
-    "a1e19f30-e1b8-4197-83aa-02086bfdbbf4": {
-        "name": "a",
-        "phones": [
-            "4444444555",
-            "1111111111",
-            "2222222222",
-            "1000000000",
-            "3000000000",
-            "20000000000",
-            "40000000000",
-            "30000000000",
-            "50000000000"
+            "+12345678901",
+            "+19876543210"
         ],
         "emails": [
-            "a@a.a",
-            "a@a.b",
-            "c.c.c"
+            "pyman@supermail.com"
+        ],
+        "birthday": "12.02.1985",
+        "address": "Київ, вул. Кодерів, 1",
+        "tags": [
+            "hero",
+            "coder"
+        ]
+    },
+    "e12d9c9b-9e8e-4f27-b5a1-6c0a12e87f0c": {
+        "name": "ScriptWitch",
+        "phones": [
+            "+11234567890"
+        ],
+        "emails": [
+            "scriptwitch@magicmail.com",
+            "witch@superhero.net"
+        ],
+        "birthday": "05.10.1690",
+        "address": "Львів, вул. Чарівників, 42",
+        "tags": [
+            "hero",
+            "magic",
+            "coder"
+        ]
+    },
+    "f52c6e78-4f97-4a6b-97f8-4c9a12d7f0c1": {
+        "name": "CodeWarrior",
+        "phones": [
+            "+12349876543"
+        ],
+        "emails": [
+            "warrior@battlecode.com"
+        ],
+        "birthday": "15.07.1971",
+        "address": "Одеса, вул. Програмерів, 17",
+        "tags": [
+            "hero",
+            "fighter",
+            "coder"
+        ]
+    },
+    "d2c5b3f7-5d9e-4c2f-b8a5-6d0a12e87b2c": {
+        "name": "Debugger",
+        "phones": [
+            "+19871234567"
+        ],
+        "emails": [
+            "debugger@fixmail.com",
+            "fixer@bugsmail.com"
+        ],
+        "birthday": "30.11.1988",
+        "address": "Харків, вул. Налагоджувачів, 101",
+        "tags": [
+            "hero",
+            "fixer",
+            "coder"
+        ]
+    },
+    "b6d9c7d2-7f8b-4f2d-b8b1-7f0b12e97d4f": {
+        "name": "IronPython",
+        "phones": [
+            "+12345678901",
+            "+10987654321"
+        ],
+        "emails": [
+            "ironpython@starkindustries.com"
+        ],
+        "birthday": "12.05.1980",
+        "address": "Старк Тауер, Нью-Йорк, Альтернативна Реальність 0x1B3D8AC00",
+        "tags": [
+            "hero",
+            "iron",
+            "coder"
+        ]
+    },
+    "d7e8a1b2-8e7d-4c9e-9b0a-8c1a23e87d5f": {
+        "name": "ThorCode",
+        "phones": [
+            "+14445556666"
+        ],
+        "emails": [
+            "thorcode@asgardrealm.com"
+        ],
+        "birthday": "01.01.1000",
+        "address": "Асгард, Дев'ять світів",
+        "tags": [
+            "hero",
+            "god",
+            "coder"
+        ]
+    },
+    "c4d8b7a2-6f8b-4e2d-b7a1-6f0a12e87d3f": {
+        "name": "DataMaster",
+        "phones": [
+            "+17771234567"
+        ],
+        "emails": [
+            "datamaster@infomail.com"
+        ],
+        "birthday": "30.05.2023",
+        "address": "м.Успіх, вул. Пітона, Країна Переможців, планета GoIT, Галактика WOOLF",
+        "tags": [
+            "hero",
+            "data",
+            "coder"
+        ]
+    },
+    "f8d9e3c2-9e7f-4b2f-8b1a-9c2b12e87d6f": {
+        "name": "SpiderScript",
+        "phones": [
+            "+15556667777"
+        ],
+        "emails": [
+            "spiderscript@dailybugle.net"
+        ],
+        "birthday": "10.08.2001",
+        "tags": [
+            "hero",
+            "spider",
+            "coder"
         ]
     }
 }

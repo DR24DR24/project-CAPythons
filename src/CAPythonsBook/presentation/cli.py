@@ -163,7 +163,7 @@ def main():
     print(f"{Fore.GREEN}{banner_part_1}{Style.RESET_ALL}")
     print()
     print(
-        f"{Fore.CYAN}{Style.BRIGHT}Welcome to the CAPythonsBook ver. 1.2 !{Style.RESET_ALL}"
+        f"{Fore.CYAN}{Style.BRIGHT}Welcome to the CAPythonsBook ver. 1.0.2 !{Style.RESET_ALL}"
     )
     print()
 

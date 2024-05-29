@@ -4,7 +4,7 @@ import uuid
 import re
 from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any
-from collections import UserDict, defaultdict
+from collections import UserDict
 from colorama import Fore, Style
 
 
@@ -14,10 +14,9 @@ class Field:
 
     def __str__(self):
         return str(self.value)
-    
-    def __eq__(self,other):
-        return self.value==other.value
 
+    def __eq__(self, other):
+        return self.value == other.value
 
     def to_dict(self):
         return self.value
@@ -31,7 +30,6 @@ class Name(Field):
 
 
 class Phone(Field):
-
     def __init__(self, value: str):
         phone_pattern = re.compile(r"^\+?[1-9]\d{9,14}$")
         if not phone_pattern.match(value):
@@ -40,19 +38,21 @@ class Phone(Field):
 
 
 class Email(Field):
-    #EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
-    EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+[.@][a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
+    EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
+
     def __init__(self, value: str):
         if not self.EMAIL_REGEX.match(value):
             raise ValueError("Invalid email format")
         super().__init__(value)
 
+
 class Address(Field):
-    def __init__(self, value: list):
+    def __init__(self, value: List[str]):
         if not value:
             raise ValueError("Invalid address format")
         string = ", ".join(value)
         super().__init__(string)
+
 
 class Birthday(Field):
     def __init__(self, value: str):
@@ -67,7 +67,6 @@ class Record:
     def __init__(self, name: Name, **fields: Any):
         self.id = uuid.uuid4()
         self.name = name
-        #self.email = None
         self.fields: Dict[str, Field] = {"name": name}
         self.fields.update(fields)
 
@@ -89,23 +88,20 @@ class Record:
         return False
 
     def add_phone(self, phone: Phone):
-        if "phone" not in self.fields:
-            self.fields["phone"] = []
-        self.fields["phone"].append(phone)
+        if "phones" not in self.fields:
+            self.fields["phones"] = []
+        self.fields["phones"].append(phone)
 
-
-    # def add_email(self, email: Email):
-    #     """Add an email address to the contact."""
-    #     self.email = email
-
-
-    # def edit_email(self, email: Email):
-    #     """Edit the email address of the contact."""
-    #     self.email = email
-
+    def add_email(self, email: Email):
+        if "emails" not in self.fields:
+            self.fields["emails"] = []
+        self.fields["emails"].append(email)
 
     def to_dict(self):
-        return {k: [f.to_dict() for f in v] if isinstance(v, list) else v.to_dict() for k, v in self.fields.items()}
+        return {
+            k: [f.to_dict() for f in v] if isinstance(v, list) else v.to_dict()
+            for k, v in self.fields.items()
+        }
 
     def __str__(self):
         field_strings = []
@@ -116,7 +112,7 @@ class Record:
                 field_str = str(value)
             field_strings.append(f"{key}: {field_str}")
         field_str = "; ".join(field_strings)
-        return f"{Fore.GREEN}Contact {field_str}{Style.RESET_ALL}"
+        return f"{Fore.GREEN}{field_str}{Style.RESET_ALL}"
 
 
 class AddressBook(UserDict):
@@ -140,13 +136,13 @@ class AddressBook(UserDict):
         upcoming_birthdays = []
 
         for record in self.data.values():
-            if "Birthday" in record.fields:
+            if "birthday" in record.fields:
                 birthday = datetime.strptime(
-                    record.fields["Birthday"].value, "%d.%m.%Y").date()
+                    record.fields["birthday"].value, "%d.%m.%Y"
+                ).date()
                 birthday_this_year = birthday.replace(year=today.year)
                 if birthday_this_year < today:
-                    birthday_this_year = birthday_this_year.replace(
-                        year=today.year + 1)
+                    birthday_this_year = birthday_this_year.replace(year=today.year + 1)
 
                 day_difference = (birthday_this_year - today).days
                 if 0 <= day_difference <= set_number:
@@ -167,73 +163,64 @@ class AddressBook(UserDict):
 
 
 class NotesBook:
-    def __init__(self, file_name: str = 'notes.json') -> None:
+    def __init__(self, file_name: str = "notes.json") -> None:
         self.file_name = file_name
-        self.notes: List[Dict[str, str]] = self.load_notes()
+        self.notes: List[Dict[str, Any]] = self.load_notes()
 
-    def load_notes(self) -> List[Dict[str, str]]:
+    def load_notes(self) -> List[Dict[str, Any]]:
         if os.path.exists(self.file_name):
-            with open(self.file_name, 'r', encoding='utf-8') as file:
+            with open(self.file_name, "r", encoding="utf-8") as file:
                 return json.load(file)
         return []
 
     def save_notes(self) -> None:
-        with open(self.file_name, 'w', encoding='utf-8') as file:
+        with open(self.file_name, "w", encoding="utf-8") as file:
             json.dump(self.notes, file, ensure_ascii=False, indent=4)
 
     def add_note(self, title: str, text: str, tags: List[str]) -> None:
         note_id = str(uuid.uuid4())
-        new_note = {
-            "id": note_id,
-            "title": title,
-            "text": text,
-            "tags": tags
-        }
+        new_note = {"id": note_id, "title": title, "text": text, "tags": tags}
         self.notes.append(new_note)
         self.save_notes()
 
     def edit_note(self, note_id: str, new_title: str, new_text: str) -> None:
         for note in self.notes:
-            if note['id'] == note_id:
-                note['title'] = new_title
-                note['text'] = new_text
+            if note["id"] == note_id:
+                note["title"] = new_title
+                note["text"] = new_text
                 self.save_notes()
                 return
         raise KeyError(f"Note with ID '{note_id}' does not exist.")
 
     def delete_note(self, note_id: str) -> None:
-        self.notes = [note for note in self.notes if note['id'] != note_id]
+        self.notes = [note for note in self.notes if note["id"] != note_id]
         self.save_notes()
 
-    def search_notes(self, keyword: str) -> List[Dict[str, str]]:
+    def search_notes(self, keyword: str) -> List[Dict[str, Any]]:
         results = []
         for note in self.notes:
-            if (keyword.lower() in note['title'].lower() or
-                keyword.lower() in note['text'].lower() or
-                    any(keyword.lower() in tag.lower() for tag in note['tags'])):
+            if (
+                keyword.lower() in note["title"].lower()
+                or keyword.lower() in note["text"].lower()
+                or any(keyword.lower() in tag.lower() for tag in note["tags"])
+            ):
                 results.append(note)
         return results
 
-    def find_notes_with_same_tags(self, tag: str) -> None:
+    def find_notes_with_same_tags(self, tag: str) -> List[Dict[str, Any]]:
         search_tag = f"#{tag}"
-        tagged_notes = [
-            note for note in self.notes if search_tag in note['tags']]
+        tagged_notes = [note for note in self.notes if search_tag in note["tags"]]
 
         if tagged_notes:
-            print(f"Notes with tag '{tag}':")
-            for note in tagged_notes:
-                print(f"  ID: {note['id']}\n  Title: {note['title']}\n  Text: {
-                      note['text']}\n  Tags: {', '.join(note['tags'])}\n  {'-'*40}")
+            return tagged_notes
         else:
             raise ValueError(f"No notes found with tag '{tag}'.")
 
-    def display_notes(self) -> None:
+    def display_notes(self) -> List[Dict[str, Any]]:
         if not self.notes:
             raise ValueError("No notes available.")
         else:
-            for note in self.notes:
-                print(f"ID: {note['id']}\nTitle: {note['title']}\nText: {
-                      note['text']}\nTags: {', '.join(note['tags'])}\n{'-'*40}")
+            return self.notes
 
 
 def update_field_types():
@@ -241,5 +228,6 @@ def update_field_types():
     for subclass in Field.__subclasses__():
         field_types[subclass.__name__.lower()] = subclass
     return field_types
+
 
 FIELD_TYPES = update_field_types()

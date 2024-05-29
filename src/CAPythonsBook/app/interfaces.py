@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Dict
 from app.entities import Record, Field, AddressBook, Name, NotesBook
-import uuid
 from presentation.messages import Message
 
 
@@ -16,14 +15,13 @@ class Command(ABC):
         self.book_type = book_type
 
     @abstractmethod
-    def execute(self, *args: str,**kwargs) -> None:
+    def execute(self, *args: str, **kwargs) -> None:
         pass
 
 
-# Базовий клас для команд, що працюють з полями (Field). Він наслідує від 'Command' і додає специфічні методи для роботи з полями.
 class FieldCommand(Command, ABC):
     @abstractmethod
-    def execute_field(self, record: Record, field: Field,**kwargs) -> None:
+    def execute_field(self, record: Record, field: Field, **kwargs) -> None:
         pass
 
     def execute(self, *args: str) -> None:
@@ -31,28 +29,20 @@ class FieldCommand(Command, ABC):
             Message.error("incorrect_arguments")
             return
         name, *field_args = args
+        # print(f"Arguments received: name={name}, field_args={field_args}")  # Debugging
         record = self.book_type.find_by_name(Name(name))
         if not record:
             Message.error("contact_not_found", name=name)
             return
-        command_parameters=self.command_parameters_get()
-        field = self.create_field(*field_args,**command_parameters)
-        self.execute_field(record, field,**command_parameters)
-    
-    def command_parameters_get(self)->Dict[str,str]:
-        return {}    
+        command_parameters = self.command_parameters_get()
+        # print(f"Command parameters: {command_parameters}")  # Debugging
+        field = self.create_field(*field_args, **command_parameters)
+        # print(f"Field created: {field}")  # Debugging
+        self.execute_field(record, field, **command_parameters)
+
+    def command_parameters_get(self) -> Dict[str, str]:
+        return {}
 
     @abstractmethod
-    def create_field(self, *args: str,**kwargs) -> Field:
-        pass
-
-
-# Інтерфейс для класів, які будуть відповідати за збереження і завантаження контактів.
-class StorageInterface(ABC):
-    @abstractmethod
-    def save_contacts(self, contacts: Dict[uuid.UUID, Record]) -> None:
-        pass
-
-    @abstractmethod
-    def load_contacts(self) -> Dict[uuid.UUID, Record]:
+    def create_field(self, *args: str, **kwargs) -> Field:
         pass
